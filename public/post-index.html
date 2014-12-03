@@ -1,0 +1,57 @@
+<div id="index-view"
+  ng-show="postCtrl.currentTab=='index'||postCtrl.currentTab == 'user'&&!postCtrl.viewUser.editingAboutMe" 
+>
+  <a class="button expand large"
+     ng-show="postCtrl.signedIn && postCtrl.currentTab == 'index'"
+     ng-click="postCtrl.newPost()" 
+     href
+  >
+    ➕ New Post
+  </a>
+  <div class="index-control">
+    <a class="post-index-link"
+       style="width:{{95/postCtrl.indexControls.length}}%;"
+       ng-repeat="control in postCtrl.indexControls"
+       ng-class="{active: postCtrl.indexView == control.action}"
+       ng-click="postCtrl.loadIndexList(control)"
+       href
+    >
+      {{control.title}}
+    </a>
+  </div>
+  <div id="show-next-index-items"
+       ng-show="postCtrl.showPostCheck && postCtrl.currentTab == 'index' && postCtrl.indexView == 'index'"
+       ng-click="postCtrl.loadNextPosts()"
+       href
+  >
+    Check for New
+  </div>
+
+  <ul id="index" ng-show="postCtrl.indexItems.length > 0">
+    <li class="index-item"
+        ng-repeat="indexItem in postCtrl.indexItems"
+        ng-class="{viewed:indexItem.loaded}"
+        ng-click="postCtrl.showIndexItem(indexItem)" 
+        href
+    >
+      {{ indexItem.title || indexItem.content }}
+      <div class="index-item-karma"
+           ng-show="indexItem.karma >= 0"
+      >
+        {{ indexItem.karma | number }}
+      </div>
+    </li>
+  </ul>
+  <div id="show-prev-index-items"
+       ng-show="!postCtrl.outtaPosts && postCtrl.currentTab == 'index' && postCtrl.indexView == 'index'"
+       ng-click="postCtrl.loadPrevPosts()"
+       href
+  >
+    Load More
+  </div>
+  <div class="empty-index" 
+       ng-show="postCtrl.indexItems == 0"
+  >
+    No Results
+  </div>
+</div>

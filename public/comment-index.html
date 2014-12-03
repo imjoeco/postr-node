@@ -1,0 +1,82 @@
+<div id="comments"
+     ng-show="postCtrl.currentTab == 'show'"
+>
+  <h3 class="comments-title"
+      ng-hide="postCtrl.addingComment"
+  >
+    Comments
+  </h3>
+
+  <a href="javascript:void(0)"
+     class="button bold add-comment" 
+     ng-show="!postCtrl.addingComment && postCtrl.viewPost.postRelation.comment_count == 0" 
+     ng-click="postCtrl.addingComment=true; postCtrl.comment.commentView = 'post'"
+  >
+    Add Comment
+  </a>
+
+  <div class="index-control comment-control"
+       ng-class="{full:postCtrl.viewPost.comments.length > 1&& postCtrl.viewPost.postRelation.comment_count == 0}" 
+       ng-show="postCtrl.viewPost.comments.length > 1 && !postCtrl.addingComment"
+  >
+    <a class="comment-index-link"
+       ng-click="postCtrl.sortCommentsBy('karma')"
+       ng-class="{active: postCtrl.viewPost.commentIndex == 'karma'}"
+       href
+    >
+      Rating
+    </a>
+    <a class="comment-index-link"
+       ng-click="postCtrl.sortCommentsBy('created_at')"
+       ng-class="{active: postCtrl.viewPost.commentIndex == 'created_at'}"
+       href
+    >
+      Newest
+    </a>
+  </div>
+
+  <div class="empty-comment-index" ng-hide="postCtrl.viewPost.comments || postCtrl.addingComment">
+    No Comments
+  </div>
+  <ul id="comment-list" 
+      ng-class="{commenting:postCtrl.addingComment}"
+      ng-show="postCtrl.viewPost.comments && !postCtrl.addingComment || postCtrl.addingComment && postCtrl.comment.commentView == 'comments'"
+  >
+    <li class="comment-index-item"
+        ng-repeat="comment in postCtrl.viewPost.comments">
+      <div class="karma-container comment-karma-container"
+           ng-class="{voted:postCtrl.viewPost.postRelation.voted_comments.indexOf(comment.id) != -1}"
+      >
+        <div class="comment-karma">
+          {{ comment.karma | number }}
+        </div>
+        <a class="comment-vote-up" 
+           title="Vote Up"
+           ng-show="postCtrl.signedIn && postCtrl.viewPost.postRelation.voted_comments.indexOf(comment.id) == -1"
+           ng-click="postCtrl.commentVote(comment)"
+           href
+        >{{ comment.karma + 1 | number }}</a>
+        <a class="comment-vote-down" 
+           title="Remove Vote"
+           ng-show="postCtrl.signedIn && postCtrl.viewPost.postRelation.voted_comments.indexOf(comment.id) != -1"
+           ng-click="postCtrl.commentVote(comment)"
+           href
+        >{{ comment.karma - 1 | number }}</a>
+      </div>
+
+      <div class="comment-content"
+           ng-bind="comment.content"
+      ></div>
+
+      <div class="comment-citation">
+        <a class="username"
+           ng-click="postCtrl.showUser(comment.username)"
+        >{{ comment.username }}</a>
+
+        <span class="pull-right">
+          {{ postCtrl.timeAgo(comment.created_at) }}
+        </span>
+      </div>
+    </li>
+  </ul>
+</div>

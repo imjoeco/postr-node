@@ -1,0 +1,115 @@
+<form id="user-form" 
+      class="form-validated"
+      name="userForm"
+      accept-charset="UTF-8" 
+      ng-show="postCtrl.currentTab=='signup'"
+      ng-submit="userForm.$valid && postCtrl.signUp()"
+      novalidate
+>
+  <h1 class="text-center">Sign Up</h1>
+  <ul class="form-errors"
+      ng-show="postCtrl.user.errors"
+  >
+    <li>
+      Errors
+    </li>
+    <li class="form-error"
+        ng-repeat="error in postCtrl.user.errors"
+    >
+      {{ error }}
+    </li>
+  </ul>
+
+  <div class="form-item user-name">
+    <label for="user_name">Name</label>
+    <div class="errors" 
+         ng-show="postCtrl.user.showNameError"
+    >
+      <div ng-show="userForm.user_name.$dirty && userForm.user_name.$error.minlength">
+        Name is too short. (Minimum: 3 characters)
+      </div>
+      <div ng-show="userForm.user_name.$dirty && userForm.user_name.$error.pattern">
+        Name may only contain letters, numbers, and underscore ("_") characters.
+      </div>
+    </div>
+    <input ng-model="postCtrl.user.name" 
+           name="user_name" 
+           autofocus="autofocus" 
+           size="30" type="text"
+           ng-pattern="/^[A-Za-z0-9]+(?:[_][A-Za-z0-9]+)*$/"
+           ng-minlength="3" ng-maxlength="20"
+           required
+    />
+    <div class="valid-link" 
+         ng-show="userForm.user_name.$dirty && userForm.user_name.$valid"
+    >✔</div>
+    <div class="valid-link" 
+         ng-show="userForm.user_name.$dirty && !userForm.user_name.$valid" 
+         ng-click="postCtrl.user.showNameError = !postCtrl.user.showNameError"
+    >❌</div>
+  </div>
+
+  <div class="form-item user-password">
+    <label for="user_password">Password</label>
+    <div class="errors" 
+         ng-show="postCtrl.user.showPassError"
+    >
+      <div ng-show="userForm.user_password.$dirty && userForm.user_password.$error.minlength">
+        Password is too short. (Minimum: 6 characters)
+      </div>
+      <div ng-show="userForm.user_password.$dirty && userForm.user_password.$error.maxlength">
+        Password is too long. (Maximum: 32 characters)
+      </div>
+      <div ng-show="userForm.user_password.$dirty && userForm.user_password.$error.pattern">
+        Password must either contain at least one letter, number and special character ( !@#$&*%^=+ ) or be atleast 16 characters in length.
+      </div>
+    </div>
+    <input ng-model="postCtrl.user.password" 
+           name="user_password" 
+           size="30" type="password"
+           ng-minlength="6" ng-maxlength="32"
+           ng-pattern="/^(?=.*[!@#$&*%^=+])(?=.*[0-9])(?=.*[a-z]).+|.{16,}$/i"
+           required
+    />
+    <div class="valid-link" 
+         ng-show="userForm.user_password.$dirty && userForm.user_password.$valid"
+    >✔</div>
+    <div class="valid-link" 
+         ng-show="userForm.user_password.$dirty && !userForm.user_password.$valid" 
+         ng-click="postCtrl.user.showPassError = !postCtrl.user.showPassError"
+    >❌</div>
+  </div>
+
+
+  <div class="form-item user-password-confirmation">
+    <label for="user_password_confirmation">
+      Re-enter Password
+    </label>
+    <div class="errors" 
+         ng-show="postCtrl.user.showPassConError"
+    >
+      <div ng-show="userForm.user_password_confirmation.$dirty && userForm.user_password_confirmation.$error.passwordsMismatch">
+        Passwords don't match.
+      </div>
+    </div>
+    <input ng-model="postCtrl.user.password_confirmation" 
+           name="user_password_confirmation" 
+           size="30" type="password"
+           ng-change="postCtrl.passwordCheck()"
+           required
+    />
+    <div class="valid-link" 
+         ng-show="userForm.user_password_confirmation.$valid"
+    >✔</div>
+    <div class="valid-link" 
+         ng-show="userForm.user_password_confirmation.$dirty && !userForm.user_password_confirmation.$valid" 
+         ng-click="postCtrl.user.showPassConError = !postCtrl.user.showPassConError"
+    >❌</div>
+  </div>
+
+  <input name="commit" 
+         type="submit" 
+         value="Sign Up" 
+         class="button large"
+  >
+</form>

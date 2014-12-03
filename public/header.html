@@ -1,0 +1,41 @@
+<div id="header">
+  <div id="header-inner">
+    <h1 ng-click="postCtrl.showIndex()">
+      Postr
+    </h1>
+    <div class="session-group"
+         ng-show="!postCtrl.signedIn"
+    >
+      <a class="session-link sign-in-link"
+         ng-click="postCtrl.showSessionForm()"
+         href
+      >
+        Sign In
+      </a>
+      <a class="session-link"
+         ng-click="postCtrl.showUserForm()"
+         href
+      >
+        Sign Up
+      </a>
+    </div>
+    <div ng-show="postCtrl.currentUser.name"
+         ng-click="postCtrl.showMenu()"
+         class="username"
+    >
+      {{postCtrl.currentUser.name}}
+    </div>
+    <div  id="user-menu"
+          ng-show="postCtrl.clearout"
+    >
+      <a href="javascript:void(0)" 
+         name="Profile" 
+         ng-click="postCtrl.showUser(postCtrl.currentUser.name)"
+      >Profile</a>
+      <a href="javascript:void(0)" 
+         name="Sign Out" 
+         ng-click="postCtrl.signOut()"
+      >Sign Out</a>
+    </div>
+  </div>
+</div>

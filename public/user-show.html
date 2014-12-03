@@ -1,0 +1,57 @@
+<div id="user-view" 
+     ng-show="postCtrl.currentTab=='user'"
+>
+  <div class="user-title"
+       ng-hide="postCtrl.viewUser.editingAboutMe"
+  >
+    <div class="user-karma">
+      {{postCtrl.viewUser.karma | number}}
+    </div>
+    <h2 ng-hide="postCtrl.viewUser.editingAboutMe">
+      {{ postCtrl.viewUser.name }}
+    </h2>
+  </div>
+  <div class="user-sub-title"
+       ng-hide="postCtrl.viewUser.editingAboutMe"
+  >
+    <div class="user-joined"
+    >
+      Joined : {{ postCtrl.timeAgo(postCtrl.viewUser.created_at) }}
+    </div>
+    <a class="edit-user-link"
+       ng-show="postCtrl.viewUser.id == postCtrl.currentUser.id && !postCtrl.viewUser.editingAboutMe"
+       ng-click="postCtrl.editUser()"
+       href
+    >Edit About Me</a>
+  </div>
+  <div class="about-me"
+       ng-show="postCtrl.viewUser.about_me && !postCtrl.viewUser.editingAboutMe"
+  >
+    {{ postCtrl.viewUser.about_me }}
+  </div>
+  <form id="user-update-form" 
+        name="userUpdateForm"
+        accept-charset="UTF-8" 
+        ng-show="postCtrl.viewUser.editingAboutMe"
+        ng-submit="postCtrl.updateAboutMe()" 
+        novalidate
+  >
+    <input name="utf8" type="hidden" value="✓">
+    <h2 class="text-center expand block rel">About Me</h2>
+    <textarea id="user_about_me" 
+              name="user_about_me" 
+              ng-model="postCtrl.user.about_me"
+    ></textarea>
+
+    <div class="form-close" 
+          ng-show="postCtrl.viewUser.editingAboutMe"
+          ng-click="postCtrl.viewUser.editingAboutMe=false"
+    >
+      Cancel
+    </div>
+    <input type="submit" 
+           name="commit" 
+           value="Save Changes"
+    >
+  </form>
+</div>

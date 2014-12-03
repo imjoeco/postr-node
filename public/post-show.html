@@ -1,0 +1,82 @@
+<div id="post-show" 
+     ng-show="postCtrl.currentTab=='show'"
+>
+  <div class="post-header">
+    <h2>
+      {{ postCtrl.viewPost.title }}
+      <a id="favorite-post"
+         ng-show="postCtrl.signedIn && !postCtrl.viewPost.postRelation.favorited"
+         ng-click="postCtrl.favorite()"
+         href
+      >☆★</a>
+      <a id="unfavorite-post"
+         ng-show="postCtrl.signedIn && postCtrl.viewPost.postRelation.favorited"
+         ng-click="postCtrl.favorite()"
+         href
+      >★★</a>
+    </h2>
+
+    <div class="karma-container"
+         ng-class="{voted:postCtrl.viewPost.postRelation.voted}"
+    >
+      <div class="post-karma">
+        {{ postCtrl.viewPost.karma | number }}
+      </div>
+      <a class="vote-up" 
+         title="Vote Up"
+         ng-show="postCtrl.signedIn && !postCtrl.viewPost.postRelation.voted"
+         ng-click="postCtrl.vote(postCtrl.viewPost)"
+         href
+      >{{ postCtrl.viewPost.karma + 1 | number }}</a>
+      <a class="vote-down" 
+         title="Remove Vote"
+         ng-show="postCtrl.signedIn && postCtrl.viewPost.postRelation.voted"
+         ng-click="postCtrl.vote(postCtrl.viewPost)"
+         href
+      >{{ postCtrl.viewPost.karma - 1 | number }}</a>
+    </div>
+  </div>
+  <div class="comment-control"
+       ng-show="postCtrl.addingComment && postCtrl.viewPost.comments.length > 0"
+  >
+      <a class="comment-view-control"
+         ng-class="{active: postCtrl.comment.commentView == 'post'}"
+         ng-click="postCtrl.comment.commentView = 'post'"
+         href
+      >
+        Post
+      </a>
+      <a class="comment-view-control"
+         ng-class="{active: postCtrl.comment.commentView == 'comments'}"
+         ng-click="postCtrl.comment.commentView = 'comments'"
+         href
+      >
+        Comments
+      </a>
+  </div>
+
+  <div class="post-content" 
+       ng-bind="postCtrl.viewPost.content"
+       ng-class="{commenting:postCtrl.addingComment}"
+       ng-show="!postCtrl.addingComment || postCtrl.addingComment && postCtrl.comment.commentView == 'post'"
+  ></div>
+
+  <div class="post-citation"
+       ng-show="!postCtrl.addingComment || postCtrl.addingComment && postCtrl.comment.commentView == 'post'"
+  >
+    <div class="username"
+         ng-hide="postCtrl.viewPost.user_id == postCtrl.currentUser.id"
+         ng-click="postCtrl.showUser(postCtrl.viewPost.user_id)"
+    >
+      {{ postCtrl.viewPost.user_name }}
+    </div>
+    <a id="edit-post"
+       ng-click="postCtrl.editPost(postCtrl.viewPost)"
+       ng-show="postCtrl.viewPost.user_id == postCtrl.currentUser.id && !postCtrl.addingComment"
+       href
+    >Edit</a>
+    <span class="pull-right">
+      {{ postCtrl.timeAgo(postCtrl.viewPost.created_at) }}
+    </span>
+  </div>
+</div>

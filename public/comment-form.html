@@ -1,0 +1,25 @@
+<form id="comment-form" 
+      accept-charset="UTF-8" 
+      ng-show="postCtrl.currentTab=='show' && postCtrl.addingComment"
+      ng-submit="postCtrl.saveComment()" 
+      novalidate
+>
+  <h3 class="text-center">Comment</h3>
+  <input name="utf8" type="hidden" value="✓">
+  <textarea id="comment_content" 
+            name="comment[content]" 
+            ng-model="postCtrl.comment.content"
+  ></textarea>
+
+
+  <div class="cancel-comment" 
+        ng-show="postCtrl.addingComment"
+        ng-click="postCtrl.addingComment=false"
+  >
+    Cancel
+  </div>
+  <input type="submit" 
+         name="commit" 
+         value="Save"
+  >
+</form>

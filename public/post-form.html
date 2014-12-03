@@ -1,0 +1,47 @@
+<form id="post-form" 
+      name="postForm"
+      accept-charset="UTF-8" 
+      ng-show="postCtrl.currentTab=='form'"
+      ng-submit="postForm.$valid && postCtrl.savePost()" 
+      novalidate
+>
+  <h2 class="text-center"
+      ng-show="!postCtrl.post.id"
+  >New Post</h2>
+  <h2 class="text-center"
+      ng-show="postCtrl.post.id"
+  >Edit Post</h2>
+
+  <ul id="post-errors">
+    <li ng-repeat="error in postCtrl.post.errors">
+      {{ error }}
+    </li>
+  </ul>
+  <input name="utf8" type="hidden" value="✓">
+  <label for="post_title">Title</label>
+  <input autofocus="autofocus" 
+         id="post_title" 
+         name="post[title]" 
+         size="30" type="text" 
+         ng-model="postCtrl.post.title" 
+         ng-pattern="/^[a-z0-9_ :\-]+$/i"
+         ng-minlength="3"
+         required
+  >
+
+  <label for="post_content">Content</label>
+  <textarea id="post_content" 
+            name="post[content]" 
+            size="30" type="text" 
+            ng-model="postCtrl.post.content" 
+            ng-minlength="100"
+            required
+  ></textarea>
+
+    <div class="form-close" 
+          ng-click="postCtrl.exitForm()"
+    >
+      Cancel
+    </div>
+  <input name="commit" type="submit" value="Post">
+</form>
