@@ -12,7 +12,7 @@ var postSchema = new Schema({
 postSchema.statics.create = function(params, callback){
   var Post = this;
 
-  Post.findOne({title: params.title}, function(err, post){
+  Post.findOne({title: new RegExp(params.title,"i")}, function(err, post){
     if(post) callback(409); // post title conflict
     else{ // create new post
       var postHash = {

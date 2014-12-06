@@ -139,6 +139,7 @@ app.controller("appController",['$http','$scope', function($http, $scope){
           postCtrl.loadIndexList(control);
           control.force = false;
         });
+      $scope.$apply();
     });
   };
   
@@ -392,7 +393,7 @@ app.controller("appController",['$http','$scope', function($http, $scope){
   };
 
   this.commentVote = function(comment){
-    $http.head('/comments/'+comment.id+'/vote')
+    $http.head('/comments/'+comment._id+'/vote')
     .success(function(){
       votedComments = postCtrl.viewPost.postRelation.voted_comments;
       commentIndex = votedComments.indexOf(comment.id);
@@ -503,6 +504,7 @@ app.controller("appController",['$http','$scope', function($http, $scope){
         .then(function(control){
           postCtrl.loadIndexList(control);
           postCtrl.currentTab = 'user';
+          $scope.$apply();
         });
       });
     });

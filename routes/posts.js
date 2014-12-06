@@ -3,6 +3,10 @@ var router = express.Router();
 var auth = require('./authentication/auth');
 var Post = require('../models/post');
 
+//Post.find({},function(err,posts){
+//  posts.forEach(function(post){post.remove();});
+//});
+
 /* CREATE new post. */
 router.post('/', auth, function(req, res) {
   var params = req.body;
@@ -22,7 +26,8 @@ router.get('/', function(req, res) {
 
 /* READ post by title */
 router.get('/:title', function(req, res) {
-  Post.findOne({title: req.params.title},function(err,post){
+  var titleRegex = new RegExp(req.params.title.replace(/\-/,'.'),'i');
+  Post.findOne({title: titleRegex},function(err,post){
     if(post) res.json(post);
     else res.status(404).json();
   });

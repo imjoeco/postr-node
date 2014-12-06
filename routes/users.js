@@ -3,6 +3,10 @@ var router = express.Router();
 var User = require('../models/user');
 var auth = require('./authentication/auth');
 
+//User.find({}, function(err, users){
+//  users.forEach(function(user){user.remove();});
+//});
+
 /* CREATE user document */
 router.post('/', function(req, res) {
   var params = req.body;

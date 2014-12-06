@@ -1,8 +1,9 @@
 var mongoose = require('mongoose');
 var crypto = require('crypto');
+var bcrypt = require('bcrypt');
 var Schema = mongoose.Schema;
 
-var salt = "SaltGoesHere"
+//var salt = "SaltGoesHere"
 
 var userSchema = new Schema({
   username: {type: String, index: true},
@@ -21,28 +22,24 @@ userSchema.statics.create = function(params, callback){
     }
     else{ // No user found: Create new user
       if(params.password == params.password_confirmation){
-        crypto.pbkdf2(
-          params.password, 
-          salt, 500, 128, 
-          function(err, derivedKey) {
-            var userHash = {
-              password_digest: derivedKey,
-              remember_token: crypto.createHash('sha256').digest('base64'),
-              username: params.name,
-              karma:0,
-              created_at: Date.now()
-            };
+        bcrypt.hash(params.password, 10, function(err, hash){
+          var userHash = {
+            password_digest: hash,
+            remember_token: crypto.createHash('sha256').digest('base64'),
+            username: params.name,
+            karma:0,
+            created_at: Date.now()
+          };
 
-            new User(userHash).save(function(err, user){
-              if(err) throw err;
-              user._v = null;
-              user._id = null;
-              user.password_digest = "[FILTERED]";
+          new User(userHash).save(function(err, user){
+            if(err) throw err;
+            user._v = null;
+            user._id = null;
+            user.password_digest = "[FILTERED]";
 
-              callback(null, user);
-            });
-          }
-        );
+            callback(null, user);
+          });
+        });
       }
       else{ // password and confirm don't match
         callback({code:400, message: "Password and confirmation do not match"}, null);
@@ -51,19 +48,13 @@ userSchema.statics.create = function(params, callback){
   });
 };
 
+// Check Password for Signin
 userSchema.statics.authenticate = function(params, callback){
   this.findOne({username: params.name}, function(err, user){
     if(user){
-      crypto.pbkdf2(
-        params.password, 
-        salt, 500, 128, 
-        function(err, derivedKey){
-          if(err) throw err;
-
-          if(user.password_digest == derivedKey){
-            callback(null, user); // everything checks out
-          }
-          else callback(401, null); //incorrect password
+      bcrypt.compare(params.password, user.password_digest, function(err, correctPassword){
+        if(correctPassword) callback(null, user);
+        else callback(401, null);
       });
     }
     else callback(404, null);// user not found 
