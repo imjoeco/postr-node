@@ -1,10 +1,10 @@
 var User = require('../../models/user');
 
 module.exports = function(req, res, next){
-
-  User.find({username:req.cookies.username},function(err, users){
-    if(users.length > 0){
-      if(users[0].remember_token == req.cookies.remember_token){
+  User.findOne({username:req.cookies.username},function(err, user){
+    if(user){
+      if(user.remember_token == req.cookies.remember_token){
+        req.user = user;
         next();
       }
       else{ //unauthorized

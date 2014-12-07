@@ -3,8 +3,6 @@ var crypto = require('crypto');
 var bcrypt = require('bcrypt');
 var Schema = mongoose.Schema;
 
-//var salt = "SaltGoesHere"
-
 var userSchema = new Schema({
   username: {type: String, index: true},
   password_digest: String,
@@ -50,7 +48,7 @@ userSchema.statics.create = function(params, callback){
 
 // Check Password for Signin
 userSchema.statics.authenticate = function(params, callback){
-  this.findOne({username: params.name}, function(err, user){
+  this.findOne({username: new RegExp(params.name,"i")}, function(err, user){
     if(user){
       bcrypt.compare(params.password, user.password_digest, function(err, correctPassword){
         if(correctPassword) callback(null, user);

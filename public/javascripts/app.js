@@ -41,9 +41,9 @@ app.controller("appController",['$http','$scope', function($http, $scope){
     return new Promise(function(resolve, reject){
       if(indexName == "user"){
         postCtrl.indexControls = [
-          {controller:"users", id:postCtrl.viewUser.name, action:'recent_list', title:'Recent'},
-          {controller:"users", id:postCtrl.viewUser.name, action:'top_posts', title:'Top Posts'},
-          {controller:"users", id:postCtrl.viewUser.name, action:'top_comments', title:'Top Comments'}
+          {controller:"users", id:postCtrl.viewUser.name, action:'recent', title:'Recent'},
+          {controller:"users", id:postCtrl.viewUser.name, action:'posts', title:'Top Posts'},
+          {controller:"users", id:postCtrl.viewUser.name, action:'comments', title:'Top Comments'}
         ];
       }
       else{
@@ -534,9 +534,8 @@ app.controller("appController",['$http','$scope', function($http, $scope){
   this.signIn = function(){
     $http.post('users/signin', postCtrl.session)
       .success(function(data){
-        postCtrl.currentUser = {
-          name:document.cookie.replace(/(.*)username=/,"").replace(/;(.*)/,"")
-        };
+        postCtrl.currentUser.name = document.cookie.replace(/(.*)username=/,"").replace(/;(.*)/,"");
+        postCtrl.currentUser.id = postCtrl.currentUser.name;
 
         postCtrl.session = {};
         postCtrl.signedIn = true;

@@ -19,7 +19,7 @@
       Joined : {{ postCtrl.timeAgo(postCtrl.viewUser.created_at) }}
     </div>
     <a class="edit-user-link"
-       ng-show="postCtrl.viewUser.id == postCtrl.currentUser.id && !postCtrl.viewUser.editingAboutMe"
+       ng-show="postCtrl.viewUser.name == postCtrl.currentUser.name && !postCtrl.viewUser.editingAboutMe"
        ng-click="postCtrl.editUser()"
        href
     >Edit About Me</a>

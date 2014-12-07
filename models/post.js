@@ -25,7 +25,7 @@ postSchema.statics.create = function(params, callback){
 
       new Post(postHash).save(function(err, post){
         if(err) throw err;
-        callback(200); // success!
+        callback(201); // success!
       });
     }
   });

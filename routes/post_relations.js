@@ -9,7 +9,7 @@ var PostRelation = require('../models/post_relation');
 /* CREATE or READ relation by post title. */
 router.get('/:post_title', auth, function(req, res) {
   var params = {
-    username: req.cookies.username,
+    username: req.user.username,
     post_title: req.params.post_title
   }
 
