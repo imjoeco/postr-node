@@ -225,7 +225,7 @@ app.controller("appController",['$http','$scope', function($http, $scope){
   };
 
   this.savePost = function(){
-    if(typeof postCtrl.post.id == "undefined"){
+    if(typeof postCtrl.post.username == "undefined"){
       $http.post('posts', postCtrl.post)
         .success(function(data){
           postCtrl.post = {};
@@ -237,7 +237,7 @@ app.controller("appController",['$http','$scope', function($http, $scope){
         });
     }
     else{
-      $http.put('/posts/'+postCtrl.post.id, postCtrl.post)
+      $http.put('/posts/'+postCtrl.post.username, postCtrl.post)
         .success(function(data){
           postCtrl.viewPost = postCtrl.post;
           postCtrl.post = {};
