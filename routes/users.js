@@ -1,7 +1,6 @@
 var express = require('express');
 var router = express.Router();
 var User = require('../models/user');
-var UserList = require('../models/user_list');
 var auth = require('./authentication/auth');
 
 //User.find({}, function(err, users){
@@ -97,12 +96,6 @@ router.get('/:username/:list_type', function(req, res) {
         });
       break;
   }
-});
-
-router.post('/:username/:list_type', function(req, res) {
-  UserList.addOrUpdate(req.params, function(list){
-    res.json(list);
-  });
 });
 
 module.exports = router;

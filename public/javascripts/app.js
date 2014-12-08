@@ -256,7 +256,8 @@ app.controller("appController",['$http','$scope', function($http, $scope){
       //incase id submitted instead of post obj
       if(typeof post.content == "undefined" || typeof post.karma == "undefined"){
         viewPostExists = (typeof postCtrl.viewPost.id != "undefined");
-        if(!viewPostExists || viewPostExists && postCtrl.viewPost.id != post){
+        if(!viewPostExists || viewPostExists && postCtrl.viewPost._id != post){
+          if(typeof post.post_id != "undefined") post = {id:post.post_id};
           if(typeof post.id == "undefined") post = {id:post};
           postCtrl.viewPost = {};
 
@@ -337,7 +338,7 @@ app.controller("appController",['$http','$scope', function($http, $scope){
   };
 
   this.favorite = function(){
-    $http.head('/posts/'+postCtrl.viewPost.id+'/favorite')
+    $http.head('/posts/'+postCtrl.viewPost._id+'/favorite')
     .success(function(){
       postCtrl.viewPost.postRelation.favorited = !postCtrl.viewPost.postRelation.favorited;
       if(typeof postCtrl.favorites == "undefined") postCtrl.favorites = [];

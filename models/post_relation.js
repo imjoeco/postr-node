@@ -1,7 +1,6 @@
 var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
 
-var postRelationSchema = new Schema({
+var postRelationSchema = new mongoose.Schema({
   user_id: {type:String, index:true},
   post_id: {type:String, index:true},
   username: String,

@@ -1,34 +1,26 @@
 var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
 
-var userListSchema = new Schema({
+var favoriteListSchema = new mongoose.Schema({
   username: {type:String, index:true},
-  list_type: {type:String, index:true},
   items:[{
-    post_title: {type:String, index:true},
-    comment_id: Number,
-    karma: Number,
-    content: String,
-    created_at: Date
+    title: String,
+    post_id: {type:String, index:true}
   }],
   created_at: Date
 });
 
-userListSchema.statics.findOrCreate = function(params, callback){
-  var UserList = this;
-  UserList.findOne({username: params.username, list_type: params.list_type}, function(err, list){
-    if(list){
-      callback(list);
-    }
+favoriteListSchema.statics.findOrCreate = function(params, callback){
+  var FavoriteList = this;
+  FavoriteList.findOne({username: params.username}, function(err, list){
+    if(list) callback(list);
     else{
       var listHash = {
         username: params.username,
-        list_type: params.list_type,
         items: [],
         created_at: Date.now()
       };
 
-      new UserList(listHash).save(function(err, list){
+      new FavoriteList(listHash).save(function(err, list){
         if(err) throw err;
 
         if(list) callback(list);
@@ -38,7 +30,7 @@ userListSchema.statics.findOrCreate = function(params, callback){
   });
 };
 
-userListSchema.methods.findItem = function(search, callback){
+favoriteListSchema.methods.findItem = function(search, callback){
   var items = this.items;
   items.forEach(function(item, index){
     if(item.post_title == search) callback(item); 
@@ -47,7 +39,7 @@ userListSchema.methods.findItem = function(search, callback){
   });
 };
 
-userListSchema.methods.findAndDelete = function(search, callback){
+favoriteListSchema.methods.findAndDelete = function(search, callback){
   var list = this;
   list.items.forEach(function(item, index){
     if(item.post_title == search || item.comment_id == search){
@@ -58,7 +50,7 @@ userListSchema.methods.findAndDelete = function(search, callback){
   });
 };
 
-userListSchema.methods.addPost = function(post, callback){
+favoriteListSchema.methods.addPost = function(post, callback){
   var list = this;
 
   list.items.forEach(function(item, index){
@@ -72,7 +64,7 @@ userListSchema.methods.addPost = function(post, callback){
   console.log(list);
 };
 
-userListSchema.methods.addOrUpdate = function(params, callback){
+favoriteListSchema.methods.addOrUpdate = function(params, callback){
   var list = this;
 
   list.items.forEach(function(item, index){
@@ -163,4 +155,4 @@ userListSchema.methods.addOrUpdate = function(params, callback){
 //  });
 //};
 
-module.exports = mongoose.model('userList', userListSchema);
+module.exports = mongoose.model('favoriteList', favoriteListSchema);
