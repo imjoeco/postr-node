@@ -52,13 +52,13 @@
         </div>
         <a class="comment-vote-up" 
            title="Vote Up"
-           ng-show="postCtrl.signedIn && postCtrl.viewPost.postRelation.voted_comments.indexOf(comment.id) == -1"
+           ng-show="postCtrl.signedIn && postCtrl.viewPost.postRelation.voted_comments.indexOf(comment._id) == -1"
            ng-click="postCtrl.commentVote(comment)"
            href
         >{{ comment.karma + 1 | number }}</a>
         <a class="comment-vote-down" 
            title="Remove Vote"
-           ng-show="postCtrl.signedIn && postCtrl.viewPost.postRelation.voted_comments.indexOf(comment.id) != -1"
+           ng-show="postCtrl.signedIn && postCtrl.viewPost.postRelation.voted_comments.indexOf(comment._id) != -1"
            ng-click="postCtrl.commentVote(comment)"
            href
         >{{ comment.karma - 1 | number }}</a>

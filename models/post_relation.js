@@ -2,8 +2,9 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var postRelationSchema = new Schema({
-  username: {type:String, index:true},
+  user_id: {type:String, index:true},
   post_id: {type:String, index:true},
+  username: String,
   comment_count: Number,
   voted: Boolean,
   voted_comments: Array,
@@ -14,12 +15,13 @@ var postRelationSchema = new Schema({
 postRelationSchema.statics.findOrCreate = function(params, callback){
   var PostRelation = this;
 
-  PostRelation.findOne({ username: params.username, post_id: params.post_id}, function(err, postRelation){
+  PostRelation.findOne({user_id: params.user_id, post_id: params.post_id}, function(err, postRelation){
     if(postRelation) callback(200, postRelation); // Return existing relation
     else{ // create new relation
       var postRelationObj = {
-        username: params.username,
+        user_id: params.user_id,
         post_id: params.post_id,
+        username: params.username,
         favorited: false,
         voted: false,
         voted_comments: [],

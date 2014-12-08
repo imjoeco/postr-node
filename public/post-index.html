@@ -20,7 +20,7 @@
     </a>
   </div>
   <div id="show-next-index-items"
-       ng-show="postCtrl.showPostCheck && postCtrl.currentTab == 'index' && postCtrl.indexView == 'index'"
+       ng-show="false && postCtrl.showPostCheck && postCtrl.currentTab == 'index' && postCtrl.indexView == 'index'"
        ng-click="postCtrl.loadNextPosts()"
        href
   >
@@ -43,7 +43,7 @@
     </li>
   </ul>
   <div id="show-prev-index-items"
-       ng-show="!postCtrl.outtaPosts && postCtrl.currentTab == 'index' && postCtrl.indexView == 'index'"
+       ng-show="false && !postCtrl.outtaPosts && postCtrl.currentTab == 'index' && postCtrl.indexView == 'index'"
        ng-click="postCtrl.loadPrevPosts()"
        href
   >

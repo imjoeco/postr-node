@@ -210,9 +210,9 @@ app.controller("appController",['$http','$scope', function($http, $scope){
     if(typeof postCtrl.post != "undefined"
     && postCtrl.post.title != post.title){
       postCtrl.post = {
-        username:post.username,
         title:post.title,
-        content:post.content
+        content:post.content,
+        _id: post._id
       };
     }
     postCtrl.currentTab = 'form';
@@ -225,7 +225,7 @@ app.controller("appController",['$http','$scope', function($http, $scope){
   };
 
   this.savePost = function(){
-    if(typeof postCtrl.post.username == "undefined"){
+    if(typeof postCtrl.post._id == "undefined"){
       $http.post('posts', postCtrl.post)
         .success(function(data){
           postCtrl.post = {};
@@ -237,11 +237,16 @@ app.controller("appController",['$http','$scope', function($http, $scope){
         });
     }
     else{
-      $http.put('/posts/'+postCtrl.post.username, postCtrl.post)
+      $http.put('/posts/'+postCtrl.post._id, postCtrl.post)
         .success(function(data){
-          postCtrl.viewPost = postCtrl.post;
+          postCtrl.viewPost.title = postCtrl.post.title;
+          postCtrl.viewPost.content = postCtrl.post.content;
           postCtrl.post = {};
           postCtrl.currentTab = 'show';
+        })
+        .error(function(data,status){
+          postCtrl.post.errors = data.errors;
+          if(status == 401) postCtrl.signOut();
         });
     }
   };
@@ -282,13 +287,13 @@ app.controller("appController",['$http','$scope', function($http, $scope){
           history.pushState(
             {post: postCtrl.viewPost.id},
             postCtrl.viewPost.title + " | Postr",
-            location.href.split("#")[0]+"#/posts/"+postCtrl.viewPost.title.convertToSlug()
+            location.href.split("#")[0]+"#/posts/"+postCtrl.viewPost._id + "/" + postCtrl.viewPost.title.convertToSlug()
           );
         }
 
         if(typeof postCtrl.viewPost.comments == "undefined"){
           //$http.get('/posts/'+postCtrl.viewPost.id+'/comments')
-          $http.get('/comments/'+postCtrl.viewPost.id)
+          $http.get('/comments/'+postCtrl.viewPost._id)
           .success(function(data){
             if(data.length > 0){
               postCtrl.viewPost.comments = data;
@@ -297,7 +302,7 @@ app.controller("appController",['$http','$scope', function($http, $scope){
         }
 
         if(postCtrl.signedIn && typeof postCtrl.viewPost.postRelation == "undefined"){
-          $http.get('/post_relations/'+postCtrl.viewPost.id)
+          $http.get('/post_relations/'+postCtrl.viewPost._id)
           .success(function(data){
             postCtrl.viewPost.postRelation = data;
           })
@@ -319,11 +324,9 @@ app.controller("appController",['$http','$scope', function($http, $scope){
  
   this.vote = function(post){
     if(postCtrl.viewPost.postRelation.voted && confirm("Remove vote?") || !postCtrl.viewPost.postRelation.voted){
-      $http.head('/posts/'+post.id+'/vote')
+      $http.head('/posts/'+post._id+'/vote')
       .success(function(){
-        console.log(postCtrl.viewPost.postRelation.voted);
         postCtrl.viewPost.postRelation.voted = !postCtrl.viewPost.postRelation.voted;
-        console.log(postCtrl.viewPost.postRelation.voted);
         postCtrl.viewPost.karma += (postCtrl.viewPost.postRelation.voted)?1:-1;
       })
       .error(function(data, status){
@@ -361,7 +364,7 @@ app.controller("appController",['$http','$scope', function($http, $scope){
 //  \____/ \___/ |_| |_| |_||_| |_| |_| \___||_| |_| \__||___/
 
   this.saveComment = function(){
-    postCtrl.comment.post_title = postCtrl.viewPost.id;
+    postCtrl.comment.post_id = postCtrl.viewPost._id;
 
     $http.post('/comments', postCtrl.comment)
       .success(function(data){
@@ -396,10 +399,10 @@ app.controller("appController",['$http','$scope', function($http, $scope){
     $http.head('/comments/'+comment._id+'/vote')
     .success(function(){
       votedComments = postCtrl.viewPost.postRelation.voted_comments;
-      commentIndex = votedComments.indexOf(comment.id);
+      commentIndex = votedComments.indexOf(comment._id);
       if(commentIndex == -1){
         comment.karma += 1;
-        votedComments.push(comment.id);
+        votedComments.push(comment._id);
       }
       else{
         comment.karma -= 1;

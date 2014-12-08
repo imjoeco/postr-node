@@ -43,13 +43,14 @@ router.post('/signin', function(req, res){
 
 /* READ user document */
 router.get('/:username', function(req, res) {
-  User.find({username:req.params.username},function(err,users){
+  User.findOne({username:req.params.username},function(err,user){
     if(err) res.status(err.status || 500).json();
-    if(users.length > 0){
+    if(user){
       res.json({
-        name: users[0].username,
-        created_at: users[0].created_at,
-        about_me: users[0].about_me
+        name: user.username,
+        created_at: user.created_at,
+        about_me: user.about_me,
+        karma: user.karma
       });
     }
   });

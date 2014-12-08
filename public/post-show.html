@@ -65,10 +65,10 @@
        ng-show="!postCtrl.addingComment || postCtrl.addingComment && postCtrl.comment.commentView == 'post'"
   >
     <div class="username"
-         ng-hide="postCtrl.viewPost.user_id == postCtrl.currentUser.id"
-         ng-click="postCtrl.showUser(postCtrl.viewPost.user_id)"
+         ng-hide="postCtrl.viewPost.username == postCtrl.currentUser.name"
+         ng-click="postCtrl.showUser(postCtrl.viewPost.username)"
     >
-      {{ postCtrl.viewPost.user_name }}
+      {{ postCtrl.viewPost.username }}
     </div>
     <a id="edit-post"
        ng-click="postCtrl.editPost(postCtrl.viewPost)"

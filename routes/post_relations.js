@@ -8,16 +8,14 @@ var PostRelation = require('../models/post_relation');
 //});
 
 /* CREATE or READ relation by post title. */
-router.get('/:post_title', auth, function(req, res) {
-  var titleRegex = new RegExp(req.params.post_title.replace(/\-/g,'.'),'i');
-  Post.findOne({title: titleRegex}, function(err, post){
+router.get('/:post_id', auth, function(req, res) {
+  Post.findOne({_id: req.params.post_id}, function(err, post){
     if(post){
-      var params = {
+      PostRelation.findOrCreate({
         username: req.user.username,
+        user_id: req.user._id,
         post_id: post._id
-      }
-
-      PostRelation.findOrCreate(params,function(statusCode,postRelation){
+      },function(statusCode,postRelation){
         res.status(statusCode).json(postRelation);
       });
     }
