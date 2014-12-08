@@ -28,7 +28,7 @@ router.post('/', auth, function(req, res) {
   });
 });
 
-/* READ comment index by post title. */
+/* READ comment list by post id. */
 router.get('/:post_id', function(req, res) {
   Comment.find({post_id:req.params.post_id},function(err,comments){
     res.json(comments);
@@ -39,38 +39,11 @@ router.get('/:post_id', function(req, res) {
 router.get('/:comment_id/vote', auth, function(req, res) {
   Comment.findOne({_id: req.params.comment_id},function(err,comment){
     if(comment){
-      PostRelation.findOne({
-        username: req.user.username,
-        post_id: comment.post_id
-      }, function(err, postRelation){
-        if(postRelation){
-          var commentIndex = postRelation.voted_comments.indexOf(comment._id);
-          ~commentIndex ? comment.karma-- : comment.karma++;
-          comment.save(function(err, comment){
-            if(comment){
-              if(~commentIndex) postRelation.voted_comments.splice(commentIndex,1);
-              else postRelation.voted_comments.push(comment._id);
-
-              postRelation.save(function(err, postRelation){
-                if(postRelation) res.status(200).json(); // success
-                else res.status(500).json({message:"Internal server error : Post Relation"});
-              });
-
-              User.findOne({_id: comment.user_id}, function(err,user){
-                // users can't bump their own karma
-                if(user._id != req.user._id){
-                  ~commentIndex ? user.karma-- : user.karma++;
-                  user.save();
-                }
-              });
-            }
-            else res.status(500).json({message:"Internal server error : Comment"});
-          });
-        }
-        else res.status(404).json({message:"Post relation not found"});
+      comment.karmaBump(req.user,function(statusCode, responseBody){
+        res.status(statusCode).json();
       });
     }
-    else res.status(404).json({message:"Post not found"});
+    else res.status(404).json({message:"Comment not found"});
   });
 });
 

@@ -101,7 +101,7 @@ postSchema.methods.karmaBump = function(params, callback){
   }, function(err, postRelation){
     if(postRelation){
       // bump karma for post
-      post.karma = postRelation.voted ? post.karma - 1 : post.karma + 1;
+      postRelation.voted ? post.karma-- : post.karma++;
       post.save(function(err, post){
         if(post){ 
           // users can't bump their own karma

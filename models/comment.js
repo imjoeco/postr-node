@@ -1,7 +1,8 @@
 var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+var User = require('./user');
+var PostRelation = require('./post_relation');
 
-var commentSchema = new Schema({
+var commentSchema = new mongoose.Schema({
   username: String,
   user_id: {type:String, index:true},
   post_id: {type:String, index:true},
@@ -32,5 +33,42 @@ commentSchema.statics.create = function(params, callback){
     }
   });
 };
+
+commentSchema.methods.karmaBump = function(params, callback){
+  var comment = this;
+
+  PostRelation.findOne({
+    username: params.username,
+    post_id: comment.post_id
+  }, function(err, postRelation){
+    if(postRelation){
+      // bump karma for comment
+      var commentIndex = postRelation.voted_comments.indexOf(comment._id);
+      ~commentIndex ? comment.karma-- : comment.karma++;
+      comment.save(function(err, comment){
+        if(comment){ 
+          // users can't bump their own karma
+          if(comment.user_id != params._id){
+            // bump user karma
+            User.findOne({_id:comment.user_id},function(err, user){
+              postRelation.voted ? user.karma-- : user.karma++;
+              user.save();
+            });
+          }
+
+          // log comment id to post relation
+          if(~commentIndex) postRelation.voted_comments.splice(commentIndex,1);
+          else postRelation.voted_comments.push(comment._id);
+          postRelation.save(function(err, postRelation){
+            if(postRelation) callback(200, comment); // success
+            else callback(500,{message:"Internal server error"});
+          });
+        }
+        else callback(404,{message:"Comment not found"});
+      });
+    }
+    else callback(404,{message:"Post relation not found"});
+  });
+}
 
 module.exports = mongoose.model('comment', commentSchema);
