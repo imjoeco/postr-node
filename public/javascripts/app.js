@@ -49,8 +49,8 @@ app.controller("appController",['$http','$scope', function($http, $scope){
       else{
         postCtrl.indexControls = [
           {controller:'posts', action:'index', title:'Latest'},
-          {controller:'posts', action:'daily', title:'Daily'},
-          {controller:'posts', action:'weekly', title:'Weekly'}
+          {controller:'posts', action:'top', title:'Top'}
+          // todo : add trending
         ];
 
         if(postCtrl.signedIn){
@@ -127,7 +127,8 @@ app.controller("appController",['$http','$scope', function($http, $scope){
   this.showIndex = function(options){
     if(!options) options = {};
     updateTitle();
-    if(!options.preserveState) history.pushState({},'index','/');
+    rootAddress = location.href.split("#")[0];
+    if(!options.preserveState) history.pushState({controller: 'index'},document.title,'/');
     postCtrl.currentTab = 'index';
     postCtrl.showPostCheckButton();
     postCtrl.setIndexControls("posts")
@@ -200,14 +201,43 @@ app.controller("appController",['$http','$scope', function($http, $scope){
 // \_|     \___/ |___/ \__||___/
 //
 
-  this.newPost = function(){
-    if(typeof postCtrl.post.id != "undefined") postCtrl.post = {};
+  this.newPost = function(options){
+    if(typeof options == "undefined") options = {};
+    if(typeof postCtrl.post._id != "undefined") postCtrl.post = {};
+
+    updateTitle("New Post");
+
+    rootAddress = location.href.split("#")[0];
+    if(!options.preserveState){
+      history.pushState(
+        {post:{}},
+        document.title,
+        rootAddress + "#/posts/new"
+      );
+    }
     postCtrl.currentTab = 'form';
     document.getElementById("post_title").focus();
+
+    if(!$scope.$$phase){
+      $scope.$apply();
+    }
   };
 
   this.editPost = function(post){
-    if(typeof postCtrl.post != "undefined"
+    updateTitle("Edit Post");
+
+    if(typeof post.content == "undefined"){
+      $http.get('/posts/'+post._id)
+        .success(function(data){
+          postCtrl.post = {
+            title:data.title,
+            content:data.content,
+            _id: data._id
+          };
+        });
+    }
+
+    else if(typeof postCtrl.post != "undefined"
     && postCtrl.post.title != post.title){
       postCtrl.post = {
         title:post.title,
@@ -215,8 +245,22 @@ app.controller("appController",['$http','$scope', function($http, $scope){
         _id: post._id
       };
     }
+
+    rootAddress = location.href.split("#")[0];
+    if(!post.preserveState){
+      history.pushState(
+        {post:postCtrl.post},
+        document.title,
+        rootAddress + "#/posts/"+post._id+"/edit"
+      );
+    }
+
     postCtrl.currentTab = 'form';
     document.getElementById("post_title").focus();
+
+    if(!$scope.$$phase){
+      $scope.$apply();
+    }
   };
 
   this.exitForm = function(){
@@ -424,14 +468,30 @@ app.controller("appController",['$http','$scope', function($http, $scope){
 //   \___/ |___/ \___||_|   |___/
 //
 
-  this.showUserForm = function(){
+  this.showUserForm = function(options){
+    if(!options) options = {};
+    updateTitle("Sign Up");
+
     postCtrl.user = {
       name:postCtrl.session.name,
       password:postCtrl.session.password
     };
 
-    userForm.user_name.focus();
+    rootAddress = location.href.split("#")[0];
+    if(options && !options.preserveState){
+      history.pushState(
+        {user:postCtrl.user},
+        document.title,
+        rootAddress + "#/signup"
+      );
+    }
+
+    //userForm.user_name.focus();
     postCtrl.currentTab = 'signup';
+
+    if(!$scope.$$phase){
+      $scope.$apply();
+    }
   };
 
   this.signUp = function(){
@@ -452,9 +512,36 @@ app.controller("appController",['$http','$scope', function($http, $scope){
     $scope.userForm.user_password_confirmation.$setValidity("passwordsMismatch",valid);
   };
 
-  this.editUser = function(){
-    postCtrl.user.about_me = postCtrl.viewUser.about_me;
+  this.editUser = function(user){
+    if(typeof user == "undefined") user = {};
+    updateTitle("Edit Profile");
+
+    if(typeof postCtrl.viewUser.about_me == "undefined"){
+      $http.get('/users/'+user.username)
+        .success(function(data){
+          postCtrl.viewUser = data;
+          postCtrl.user = data;
+
+          postCtrl.viewUser.editingAboutMe = true;
+        });
+      postCtrl.currentTab = 'user';
+    }
+    else postCtrl.user = postCtrl.viewUser;
+
+    rootAddress = location.href.split("#")[0];
+    if(!user.preserveState){
+      history.pushState(
+        {user:postCtrl.user},
+        document.title,
+        rootAddress + "#/users/"+postCtrl.viewUser.name+"/edit"
+      );
+    }
+
     postCtrl.viewUser.editingAboutMe = true;
+
+    if(!$scope.$$phase){
+      $scope.$apply();
+    }
   };
 
   this.updateAboutMe = function(){
@@ -522,14 +609,26 @@ app.controller("appController",['$http','$scope', function($http, $scope){
 //  |_____/   \___| |___/ |___/ |_|  \___/  |_| |_| |___/
 //
 
-  this.showSessionForm = function(){
+  this.showSessionForm = function(options){
+    if(!options) options = {};
+    updateTitle("Sign In");
+
+    rootAddress = location.href.split("#")[0];
+    if(!options.preserveState){
+      history.pushState(
+        {user:postCtrl.user},
+        document.title,
+        rootAddress + "#/signin"
+      );
+    }
+
     postCtrl.currentTab = 'signin';
 
     //auto-fill workaround for form validation
-    postCtrl.session.name = sessionForm.session_name.value;
-    postCtrl.session.password = sessionForm.session_password.value;
+    //postCtrl.session.name = sessionForm.session_name.value;
+    //postCtrl.session.password = sessionForm.session_password.value;
 
-    sessionForm.session_name.focus();
+    //sessionForm.session_name.focus();
     if(!$scope.$$phase){
       $scope.$apply();
     }
@@ -543,7 +642,7 @@ app.controller("appController",['$http','$scope', function($http, $scope){
 
         postCtrl.session = {};
         postCtrl.signedIn = true;
-        postCtrl.loadRoute();
+        postCtrl.showIndex();
       })
       .error(function(data,status){
         if(status == 404) postCtrl.session.errors = ["Name not found"];
@@ -569,7 +668,8 @@ app.controller("appController",['$http','$scope', function($http, $scope){
     postCtrl.currentUser = {};
     postCtrl.clearout = false;
     postCtrl.signedIn = false;
-    postCtrl.currentTab = 'signin';
+    postCtrl.showSessionForm();
+    //postCtrl.currentTab = 'signin';
   };
 
   this.timeAgo = function(dateObj){
@@ -609,12 +709,24 @@ app.controller("appController",['$http','$scope', function($http, $scope){
     if(typeof urlController != "undefined"){
       urlController = urlController.split("/")[0];
       urlId = location.href.split("#/")[1].split("/")[1];
+      urlAction = location.href.split("#/")[1].split("/")[2];
 
-      if(urlId) urlId = urlId.split("/")[0];
-
-      if(urlController == "posts") postCtrl.showPost(urlId);
+      if(urlController == "posts"){
+        if(urlId == "new") postCtrl.newPost({preserveState:true});
+        else if(urlAction == "edit"){
+          postCtrl.editPost({_id: urlId, preserveState:true});
+        }
+        else postCtrl.showPost(urlId);
+      }
       else if(urlController == "users") 
-        postCtrl.showUser({userId:urlId,preserveState:true});
+        if(urlAction == "edit"){
+          postCtrl.editUser({username:urlId, preserveState:true});
+        }
+        else postCtrl.showUser({userId:urlId,preserveState:true});
+      else if(urlController == "signup")
+        postCtrl.showUserForm({preserveState:true});
+      else if(urlController == "signin")
+        postCtrl.showSessionForm({preserveState:true});
       else postCtrl.showIndex();
     }
     else{
@@ -632,51 +744,54 @@ app.controller("appController",['$http','$scope', function($http, $scope){
 // | |/ /| | | |  __/ (__| |_| |\ V /  __/\__ \
 // |___/ |_|_|  \___|\___|\__|_| \_/ \___||___/
 
-app.directive("header", function(){
-  return {restrict:'E', templateUrl:'header.html'};
-});
+// These should probably be moved to the top of the app to avoid
+// methods calling unavailable html
 
-//   _   _                
-//  | | | |___ ___ _ _ ___
-//  | |_| (_-</ -_) '_(_-<
-//   \___//__/\___|_| /__/
-
-app.directive("users",function(){
-  return {restrict:'E'};
-});
-
-app.directive("userShow", function(){
-  return {restrict:'E', templateUrl:'user-show.html'};
-});
-
-app.directive("userSignin", function(){
-  return {restrict:'E', templateUrl:'user-signin.html'};
-});
-
-app.directive("userSignup", function(){
-  return {restrict:'E', templateUrl:'user-signup.html'};
-});
-
-//   ___        _      
-//  | _ \___ __| |_ ___
-//  |  _/ _ (_-<  _(_-<
-//  |_| \___/__/\__/__/
-
-app.directive("posts",function(){
-  return {restrict:'E'};
-});
-
-app.directive("postIndex",function(){
-  return {restrict:'E', templateUrl: 'post-index.html'};
-});
-
-app.directive("postShow",function(){
-  return {restrict:'E', templateUrl: 'post-show.html'};
-});
-
-app.directive("postForm",function(){
-  return {restrict:'E', templateUrl: 'post-form.html'};
-});
+//app.directive("header", function(){
+//  return {restrict:'E', templateUrl:'header.html'};
+//});
+//
+////   _   _                
+////  | | | |___ ___ _ _ ___
+////  | |_| (_-</ -_) '_(_-<
+////   \___//__/\___|_| /__/
+//
+//app.directive("users",function(){
+//  return {restrict:'E'};
+//});
+//
+//app.directive("userShow", function(){
+//  return {restrict:'E', templateUrl:'user-show.html'};
+//});
+//
+//app.directive("userSignin", function(){
+//  return {restrict:'E', templateUrl:'user-signin.html'};
+//});
+//
+//app.directive("userSignup", function(){
+//  return {restrict:'E', templateUrl:'user-signup.html'};
+//});
+//
+////   ___        _      
+////  | _ \___ __| |_ ___
+////  |  _/ _ (_-<  _(_-<
+////  |_| \___/__/\__/__/
+//
+//app.directive("posts",function(){
+//  return {restrict:'E'};
+//});
+//
+//app.directive("postIndex",function(){
+//  return {restrict:'E', templateUrl: 'post-index.html'};
+//});
+//
+//app.directive("postShow",function(){
+//  return {restrict:'E', templateUrl: 'post-show.html'};
+//});
+//
+//app.directive("postForm",function(){
+//  return {restrict:'E', templateUrl: 'post-form.html'};
+//});
 
 //    ___                         _      
 //   / __|___ _ __  _ __  ___ _ _| |_ ___

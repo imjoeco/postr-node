@@ -1,9 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var auth = require('./authentication/auth');
-var User = require('../models/user');
 var Comment = require('../models/comment');
-var PostRelation = require('../models/post_relation');
 
 //Comment.find({},function(err, comments){
 //  comments.forEach(function(comment){comment.remove()});
@@ -14,23 +12,14 @@ router.post('/', auth, function(req, res) {
   var params = req.body;
   params.user = req.user;
 
-  Comment.create(params, function(statusCode, comment){
-    if(statusCode == 201){
-      PostRelation.findOne({
-        post_id: comment.post_id, 
-        username: comment.username
-      }, function(err, postRelation){
-        postRelation.comment_count += 1;
-        postRelation.save();
-      });
-    }
-    res.status(statusCode).json(comment);
+  Comment.create(params, function(statusCode, responseBody){
+    res.status(statusCode).json(responseBody);
   });
 });
 
 /* READ comment list by post id. */
 router.get('/:post_id', function(req, res) {
-  Comment.find({post_id:req.params.post_id},function(err,comments){
+  Comment.find({post_id:req.params.post_id}).sort("-created_at").exec(function(err,comments){
     res.json(comments);
   });
 });

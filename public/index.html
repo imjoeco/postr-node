@@ -27,21 +27,575 @@
          ng-show="postCtrl.clearout"
          ng-click="postCtrl.hideMenu()"
     ></div>
-    <header></header>
+
+    <div id="header">
+      <div id="header-inner">
+        <h1 ng-click="postCtrl.showIndex()">
+          Postr
+        </h1>
+        <div class="session-group"
+             ng-show="!postCtrl.signedIn"
+        >
+          <a class="session-link sign-in-link"
+             ng-click="postCtrl.showSessionForm()"
+             href
+          >
+            Sign In
+          </a>
+          <a class="session-link"
+             ng-click="postCtrl.showUserForm()"
+             href
+          >
+            Sign Up
+          </a>
+        </div>
+        <div ng-show="postCtrl.currentUser.name"
+             ng-click="postCtrl.showMenu()"
+             class="username"
+        >
+          {{postCtrl.currentUser.name}}
+        </div>
+        <div  id="user-menu"
+              ng-show="postCtrl.clearout"
+        >
+          <a href="javascript:void(0)" 
+             name="Profile" 
+             ng-click="postCtrl.showUser(postCtrl.currentUser.name)"
+          >Profile</a>
+          <a href="javascript:void(0)" 
+             name="Sign Out" 
+             ng-click="postCtrl.signOut()"
+          >Sign Out</a>
+        </div>
+      </div>
+    </div>
+
     <div id="main">
-      <users>
-        <user-show></user-show>
-        <user-signup></user-signup>
-        <user-signin></user-signin>
-      </users>
-      <posts>
-        <post-index></post-index>
-        <post-show></post-show>
-        <post-form></post-form>
-      </posts>
-      <comments>
-        <comment-index></comment-index>
-        <comment-form></comment-form>
+      <div id="users">
+        <!-- User View -->
+        <div id="user-view" 
+             ng-show="postCtrl.currentTab=='user'"
+        >
+          <div class="user-title"
+               ng-hide="postCtrl.viewUser.editingAboutMe"
+          >
+            <div class="user-karma">
+              {{postCtrl.viewUser.karma | number}}
+            </div>
+            <h2 ng-hide="postCtrl.viewUser.editingAboutMe">
+              {{ postCtrl.viewUser.name }}
+            </h2>
+          </div>
+          <div class="user-sub-title"
+               ng-hide="postCtrl.viewUser.editingAboutMe"
+          >
+            <div class="user-joined"
+            >
+              Joined : {{ postCtrl.timeAgo(postCtrl.viewUser.created_at) }}
+            </div>
+            <a class="edit-user-link"
+               ng-show="postCtrl.viewUser.name == postCtrl.currentUser.name && !postCtrl.viewUser.editingAboutMe"
+               ng-click="postCtrl.editUser()"
+               href
+            >Edit About Me</a>
+          </div>
+          <div class="about-me"
+               ng-show="postCtrl.viewUser.about_me && !postCtrl.viewUser.editingAboutMe"
+          >
+            {{ postCtrl.viewUser.about_me }}
+          </div>
+          <form id="user-update-form" 
+                name="userUpdateForm"
+                accept-charset="UTF-8" 
+                ng-show="postCtrl.viewUser.editingAboutMe"
+                ng-submit="postCtrl.updateAboutMe()" 
+                novalidate
+          >
+            <input name="utf8" type="hidden" value="✓">
+            <h2 class="text-center expand block rel">About Me</h2>
+            <textarea id="user_about_me" 
+                      name="user_about_me" 
+                      ng-model="postCtrl.user.about_me"
+            ></textarea>
+
+            <div class="form-close" 
+                  ng-show="postCtrl.viewUser.editingAboutMe"
+                  ng-click="postCtrl.viewUser.editingAboutMe=false"
+            >
+              Cancel
+            </div>
+            <input type="submit" 
+                   name="commit" 
+                   value="Save Changes"
+            >
+          </form>
+        </div>
+
+        <!-- Signup Form -->
+        <form id="user-form" 
+              class="form-validated"
+              name="userForm"
+              accept-charset="UTF-8" 
+              ng-show="postCtrl.currentTab=='signup'"
+              ng-submit="userForm.$valid && postCtrl.signUp()"
+              novalidate
+        >
+          <h1 class="text-center">Sign Up</h1>
+          <ul class="form-errors"
+              ng-show="postCtrl.user.errors"
+          >
+            <li>
+              Errors
+            </li>
+            <li class="form-error"
+                ng-repeat="error in postCtrl.user.errors"
+            >
+              {{ error }}
+            </li>
+          </ul>
+
+          <div class="form-item user-name">
+            <label for="user_name">Name</label>
+            <div class="errors" 
+                 ng-show="postCtrl.user.showNameError"
+            >
+              <div ng-show="userForm.user_name.$dirty && userForm.user_name.$error.minlength">
+                Name is too short. (Minimum: 3 characters)
+              </div>
+              <div ng-show="userForm.user_name.$dirty && userForm.user_name.$error.pattern">
+                Name may only contain letters, numbers, and underscore ("_") characters.
+              </div>
+            </div>
+            <input ng-model="postCtrl.user.name" 
+                   name="user_name" 
+                   autofocus="autofocus" 
+                   size="30" type="text"
+                   ng-pattern="/^[A-Za-z0-9]+(?:[_][A-Za-z0-9]+)*$/"
+                   ng-minlength="3" ng-maxlength="20"
+                   required
+            />
+            <div class="valid-link" 
+                 ng-show="userForm.user_name.$dirty && userForm.user_name.$valid"
+            >✔</div>
+            <div class="valid-link" 
+                 ng-show="userForm.user_name.$dirty && !userForm.user_name.$valid" 
+                 ng-click="postCtrl.user.showNameError = !postCtrl.user.showNameError"
+            >❌</div>
+          </div>
+
+          <div class="form-item user-password">
+            <label for="user_password">Password</label>
+            <div class="errors" 
+                 ng-show="postCtrl.user.showPassError"
+            >
+              <div ng-show="userForm.user_password.$dirty && userForm.user_password.$error.minlength">
+                Password is too short. (Minimum: 6 characters)
+              </div>
+              <div ng-show="userForm.user_password.$dirty && userForm.user_password.$error.maxlength">
+                Password is too long. (Maximum: 32 characters)
+              </div>
+              <div ng-show="userForm.user_password.$dirty && userForm.user_password.$error.pattern">
+                Password must either contain at least one letter, number and special character ( !@#$&*%^=+ ) or be atleast 16 characters in length.
+              </div>
+            </div>
+            <input ng-model="postCtrl.user.password" 
+                   name="user_password" 
+                   size="30" type="password"
+                   ng-minlength="6" ng-maxlength="32"
+                   ng-pattern="/^(?=.*[!@#$&*%^=+])(?=.*[0-9])(?=.*[a-z]).+|.{16,}$/i"
+                   required
+            />
+            <div class="valid-link" 
+                 ng-show="userForm.user_password.$dirty && userForm.user_password.$valid"
+            >✔</div>
+            <div class="valid-link" 
+                 ng-show="userForm.user_password.$dirty && !userForm.user_password.$valid" 
+                 ng-click="postCtrl.user.showPassError = !postCtrl.user.showPassError"
+            >❌</div>
+          </div>
+
+
+          <div class="form-item user-password-confirmation">
+            <label for="user_password_confirmation">
+              Re-enter Password
+            </label>
+            <div class="errors" 
+                 ng-show="postCtrl.user.showPassConError"
+            >
+              <div ng-show="userForm.user_password_confirmation.$dirty && userForm.user_password_confirmation.$error.passwordsMismatch">
+                Passwords don't match.
+              </div>
+            </div>
+            <input ng-model="postCtrl.user.password_confirmation" 
+                   name="user_password_confirmation" 
+                   size="30" type="password"
+                   ng-change="postCtrl.passwordCheck()"
+                   required
+            />
+            <div class="valid-link" 
+                 ng-show="userForm.user_password_confirmation.$valid"
+            >✔</div>
+            <div class="valid-link" 
+                 ng-show="userForm.user_password_confirmation.$dirty && !userForm.user_password_confirmation.$valid" 
+                 ng-click="postCtrl.user.showPassConError = !postCtrl.user.showPassConError"
+            >❌</div>
+          </div>
+
+          <input name="commit" 
+                 type="submit" 
+                 value="Sign Up" 
+                 class="button large"
+          >
+        </form>
+
+        <!-- Signin Form -->
+        <form id="signin-form"
+              name="sessionForm"
+              accept-charset="UTF-8" 
+              ng-show="postCtrl.currentTab == 'signin'"
+              ng-submit="sessionForm.$valid && postCtrl.signIn()"
+              novalidate
+        >
+          <h1 class="text-center">Sign In</h1>
+          <input name="utf8" type="hidden" value="✓">
+          <ul class="form-errors" 
+              ng-show="postCtrl.session.errors"
+          >
+            <li>Errors</li>
+            <li class="form-error"
+                ng-repeat="error in postCtrl.session.errors"
+            >
+              {{ error }}
+            </li>
+          </ul>
+
+          <label for="session_name">Name</label>
+          <input ng-model="postCtrl.session.name" 
+                 name="session_name" 
+                 autofocus="autofocus" 
+                 size="30" type="text"
+                 required
+          />
+
+          <label for="session_password">Password</label>
+          <input ng-model="postCtrl.session.password" 
+                 name="session_password" 
+                 size="30" type="password"
+                 required
+          />
+
+          <input name="commit" 
+                 type="submit" 
+                 value="Sign In" 
+                 class="button large "
+          >
+        </form>
+      </div>
+
+      <div id="posts">
+        <!-- Post Index -->
+        <div id="index-view"
+          ng-show="postCtrl.currentTab=='index'||postCtrl.currentTab == 'user'&&!postCtrl.viewUser.editingAboutMe" 
+        >
+          <a class="button expand large"
+             ng-show="postCtrl.signedIn && postCtrl.currentTab == 'index'"
+             ng-click="postCtrl.newPost()" 
+             href
+          >
+            ➕ New Post
+          </a>
+          <div class="index-control">
+            <a class="post-index-link"
+               style="width:{{95/postCtrl.indexControls.length}}%;"
+               ng-repeat="control in postCtrl.indexControls"
+               ng-class="{active: postCtrl.indexView == control.action}"
+               ng-click="postCtrl.loadIndexList(control)"
+               href
+            >
+              {{control.title}}
+            </a>
+          </div>
+          <div id="show-next-index-items"
+               ng-show="false && postCtrl.showPostCheck && postCtrl.currentTab == 'index' && postCtrl.indexView == 'index'"
+               ng-click="postCtrl.loadNextPosts()"
+               href
+          >
+            Check for New
+          </div>
+
+          <ul id="index" ng-show="postCtrl.indexItems.length > 0">
+            <li class="index-item"
+                ng-repeat="indexItem in postCtrl.indexItems"
+                ng-class="{viewed:indexItem.loaded}"
+                ng-click="postCtrl.showIndexItem(indexItem)" 
+                href
+            >
+              {{ indexItem.title || indexItem.content }}
+              <div class="index-item-karma"
+                   ng-show="indexItem.karma >= 0"
+              >
+                {{ indexItem.karma | number }}
+              </div>
+            </li>
+          </ul>
+          <div id="show-prev-index-items"
+               ng-show="false && !postCtrl.outtaPosts && postCtrl.currentTab == 'index' && postCtrl.indexView == 'index'"
+               ng-click="postCtrl.loadPrevPosts()"
+               href
+          >
+            Load More
+          </div>
+          <div class="empty-index" 
+               ng-show="postCtrl.indexItems == 0"
+          >
+            No Results
+          </div>
+        </div>
+
+        <!-- Post View -->
+        <div id="post-show" 
+             ng-show="postCtrl.currentTab=='show'"
+        >
+          <div class="post-header">
+            <h2>
+              {{ postCtrl.viewPost.title }}
+              <a id="favorite-post"
+                 ng-show="postCtrl.signedIn && !postCtrl.viewPost.postRelation.favorited"
+                 ng-click="postCtrl.favorite()"
+                 href
+              >☆★</a>
+              <a id="unfavorite-post"
+                 ng-show="postCtrl.signedIn && postCtrl.viewPost.postRelation.favorited"
+                 ng-click="postCtrl.favorite()"
+                 href
+              >★★</a>
+            </h2>
+
+            <div class="karma-container"
+                 ng-class="{voted:postCtrl.viewPost.postRelation.voted}"
+            >
+              <div class="post-karma">
+                {{ postCtrl.viewPost.karma | number }}
+              </div>
+              <a class="vote-up" 
+                 title="Vote Up"
+                 ng-show="postCtrl.signedIn && !postCtrl.viewPost.postRelation.voted"
+                 ng-click="postCtrl.vote(postCtrl.viewPost)"
+                 href
+              >{{ postCtrl.viewPost.karma + 1 | number }}</a>
+              <a class="vote-down" 
+                 title="Remove Vote"
+                 ng-show="postCtrl.signedIn && postCtrl.viewPost.postRelation.voted"
+                 ng-click="postCtrl.vote(postCtrl.viewPost)"
+                 href
+              >{{ postCtrl.viewPost.karma - 1 | number }}</a>
+            </div>
+          </div>
+          <div class="comment-control"
+               ng-show="postCtrl.addingComment && postCtrl.viewPost.comments.length > 0"
+          >
+              <a class="comment-view-control"
+                 ng-class="{active: postCtrl.comment.commentView == 'post'}"
+                 ng-click="postCtrl.comment.commentView = 'post'"
+                 href
+              >
+                Post
+              </a>
+              <a class="comment-view-control"
+                 ng-class="{active: postCtrl.comment.commentView == 'comments'}"
+                 ng-click="postCtrl.comment.commentView = 'comments'"
+                 href
+              >
+                Comments
+              </a>
+          </div>
+
+          <div class="post-content" 
+               ng-bind="postCtrl.viewPost.content"
+               ng-class="{commenting:postCtrl.addingComment}"
+               ng-show="!postCtrl.addingComment || postCtrl.addingComment && postCtrl.comment.commentView == 'post'"
+          ></div>
+
+          <div class="post-citation"
+               ng-show="!postCtrl.addingComment || postCtrl.addingComment && postCtrl.comment.commentView == 'post'"
+          >
+            <div class="username"
+                 ng-hide="postCtrl.viewPost.username == postCtrl.currentUser.name"
+                 ng-click="postCtrl.showUser(postCtrl.viewPost.username)"
+            >
+              {{ postCtrl.viewPost.username }}
+            </div>
+            <a id="edit-post"
+               ng-click="postCtrl.editPost(postCtrl.viewPost)"
+               ng-show="postCtrl.viewPost.username == postCtrl.currentUser.name && !postCtrl.addingComment"
+               href
+            >Edit</a>
+            <span class="pull-right">
+              {{ postCtrl.timeAgo(postCtrl.viewPost.created_at) }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Post Form -->
+        <form id="post-form" 
+              name="postForm"
+              accept-charset="UTF-8" 
+              ng-show="postCtrl.currentTab=='form'"
+              ng-submit="postForm.$valid && postCtrl.savePost()" 
+              novalidate
+        >
+          <h2 class="text-center"
+              ng-show="!postCtrl.post._id"
+          >New Post</h2>
+          <h2 class="text-center"
+              ng-show="postCtrl.post._id"
+          >Edit Post</h2>
+
+          <ul id="post-errors">
+            <li ng-repeat="error in postCtrl.post.errors">
+              {{ error }}
+            </li>
+          </ul>
+          <input name="utf8" type="hidden" value="✓">
+          <label for="post_title">Title</label>
+          <input autofocus="autofocus" 
+                 id="post_title" 
+                 name="post[title]" 
+                 size="30" type="text" 
+                 ng-model="postCtrl.post.title" 
+                 ng-pattern="/^[a-z0-9_ :\-]+$/i"
+                 ng-minlength="3"
+                 required
+          >
+
+          <label for="post_content">Content</label>
+          <textarea id="post_content" 
+                    name="post[content]" 
+                    size="30" type="text" 
+                    ng-model="postCtrl.post.content" 
+                    ng-minlength="100"
+                    required
+          ></textarea>
+
+            <div class="form-close" 
+                  ng-click="postCtrl.exitForm()"
+            >
+              Cancel
+            </div>
+          <input name="commit" type="submit" value="Post">
+        </form>
+      </div>
+      <div id="comments">
+        <!-- Comment Index -->
+        <div id="comment-index"
+             ng-show="postCtrl.currentTab == 'show'"
+        >
+          <h3 class="comments-title"
+              ng-hide="postCtrl.addingComment"
+          >
+            Comments
+          </h3>
+
+          <a href="javascript:void(0)"
+             class="button bold add-comment" 
+             ng-show="!postCtrl.addingComment && postCtrl.viewPost.postRelation.comment_count == 0" 
+             ng-click="postCtrl.addingComment=true; postCtrl.comment.commentView = 'post'"
+          >
+            Add Comment
+          </a>
+
+          <div class="index-control comment-control"
+               ng-class="{full:postCtrl.viewPost.comments.length > 1&& postCtrl.viewPost.postRelation.comment_count == 0}" 
+               ng-show="postCtrl.viewPost.comments.length > 1 && !postCtrl.addingComment"
+          >
+            <a class="comment-index-link"
+               ng-click="postCtrl.sortCommentsBy('karma')"
+               ng-class="{active: postCtrl.viewPost.commentIndex == 'karma'}"
+               href
+            >
+              Rating
+            </a>
+            <a class="comment-index-link"
+               ng-click="postCtrl.sortCommentsBy('created_at')"
+               ng-class="{active: postCtrl.viewPost.commentIndex == 'created_at'}"
+               href
+            >
+              Newest
+            </a>
+          </div>
+
+          <div class="empty-comment-index" ng-hide="postCtrl.viewPost.comments || postCtrl.addingComment">
+            No Comments
+          </div>
+          <ul id="comment-list" 
+              ng-class="{commenting:postCtrl.addingComment}"
+              ng-show="postCtrl.viewPost.comments && !postCtrl.addingComment || postCtrl.addingComment && postCtrl.comment.commentView == 'comments'"
+          >
+            <li class="comment-index-item"
+                ng-repeat="comment in postCtrl.viewPost.comments">
+              <div class="karma-container comment-karma-container"
+                   ng-class="{voted:postCtrl.viewPost.postRelation.voted_comments.indexOf(comment._id) != -1}"
+              >
+                <div class="comment-karma">
+                  {{ comment.karma | number }}
+                </div>
+                <a class="comment-vote-up" 
+                   title="Vote Up"
+                   ng-show="postCtrl.signedIn && postCtrl.viewPost.postRelation.voted_comments.indexOf(comment._id) == -1"
+                   ng-click="postCtrl.commentVote(comment)"
+                   href
+                >{{ comment.karma + 1 | number }}</a>
+                <a class="comment-vote-down" 
+                   title="Remove Vote"
+                   ng-show="postCtrl.signedIn && postCtrl.viewPost.postRelation.voted_comments.indexOf(comment._id) != -1"
+                   ng-click="postCtrl.commentVote(comment)"
+                   href
+                >{{ comment.karma - 1 | number }}</a>
+              </div>
+
+              <div class="comment-content"
+                   ng-bind="comment.content"
+              ></div>
+
+              <div class="comment-citation">
+                <a class="username"
+                   ng-click="postCtrl.showUser(comment.username)"
+                >{{ comment.username }}</a>
+
+                <span class="pull-right">
+                  {{ postCtrl.timeAgo(comment.created_at) }}
+                </span>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Comment Form -->
+        <form id="comment-form" 
+              accept-charset="UTF-8" 
+              ng-show="postCtrl.currentTab=='show' && postCtrl.addingComment"
+              ng-submit="postCtrl.saveComment()" 
+              novalidate
+        >
+          <h3 class="text-center">Comment</h3>
+          <input name="utf8" type="hidden" value="✓">
+          <textarea id="comment_content" 
+                    name="comment[content]" 
+                    ng-model="postCtrl.comment.content"
+          ></textarea>
+
+
+          <div class="cancel-comment" 
+                ng-show="postCtrl.addingComment"
+                ng-click="postCtrl.addingComment=false"
+          >
+            Cancel
+          </div>
+          <input type="submit" 
+                 name="commit" 
+                 value="Save"
+          >
+        </form>
       </comments>
       <div ng-hide="true" class="text-center">
         <h1>Loading...</h1>

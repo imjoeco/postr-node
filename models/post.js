@@ -16,6 +16,9 @@ var postSchema = new mongoose.Schema({
 postSchema.statics.create = function(params, callback){
   var Post = this;
 
+  // avoid edit conflict for front end router
+  if(/edit/i.test(params.title)) return callback(409);
+
   Post.findOne({
     title: new RegExp(params.title,"i"), 
     user_id: params.user_id
@@ -96,7 +99,7 @@ postSchema.methods.karmaBump = function(params, callback){
   var post = this;
 
   PostRelation.findOne({
-    username: params.username,
+    username: params.user.username,
     post_id: post._id
   }, function(err, postRelation){
     if(postRelation){
@@ -104,7 +107,7 @@ postSchema.methods.karmaBump = function(params, callback){
       postRelation.voted ? post.karma-- : post.karma++;
       post.save(function(err, post){
         if(post){ 
-          // users can't bump their own karma
+          // users can't bump their own user karma
           if(post.user_id != params._id){
             // bump user karma
             User.findOne({_id:post.user_id},function(err, user){

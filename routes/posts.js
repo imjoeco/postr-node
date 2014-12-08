@@ -29,7 +29,15 @@ router.get('/', function(req, res) {
   });
 });
 
-/* READ post index. */
+/* READ top posts list. */
+router.get('/top', function(req, res) {
+  Post.find().sort("-karma").limit(50).exec(function(err,posts){
+    if(posts) res.json(posts);
+    else res.status(404).json();
+  });
+});
+
+/* READ favorite posts list. */
 router.get('/favorites', auth, function(req, res) {
   FavoriteList.findOne({username:req.user.username}, function(err, list){
     if(list) res.json(list);

@@ -14,7 +14,10 @@ var commentSchema = new mongoose.Schema({
 commentSchema.statics.create = function(params, callback){
   var Comment = this;
 
-  Comment.findOne({post_id: params.post_id, user_id: params.user._id}, function(err, comment){
+  Comment.findOne({
+    post_id: params.post_id, 
+    user_id: params.user._id
+  }, function(err, comment){
     if(comment) callback(409, comment); // post title conflict
     else{ // create new post
       var commentHash = {
@@ -27,8 +30,23 @@ commentSchema.statics.create = function(params, callback){
       };
 
       new Comment(commentHash).save(function(err, comment){
-        if(err) throw err;
-        callback(201, comment); // success!
+        if(err) console.log(err);
+        if(comment){
+          // bump comment count for post relation
+          PostRelation.findOne({
+            post_id: comment.post_id, 
+            username: comment.username
+          }, function(err, postRelation){
+            postRelation.comment_count++;
+            postRelation.save();
+          });
+
+          // auto-bump comment karma for creator
+          comment.karmaBump({
+            username: comment.username,
+            _id: comment.user_id
+          }, callback);
+        }
       });
     }
   });
@@ -47,7 +65,7 @@ commentSchema.methods.karmaBump = function(params, callback){
       ~commentIndex ? comment.karma-- : comment.karma++;
       comment.save(function(err, comment){
         if(comment){ 
-          // users can't bump their own karma
+          // users can't bump their own user karma
           if(comment.user_id != params._id){
             // bump user karma
             User.findOne({_id:comment.user_id},function(err, user){
@@ -56,7 +74,7 @@ commentSchema.methods.karmaBump = function(params, callback){
             });
           }
 
-          // log comment id to post relation
+          // log comment id to post relation voted comment list
           if(~commentIndex) postRelation.voted_comments.splice(commentIndex,1);
           else postRelation.voted_comments.push(comment._id);
           postRelation.save(function(err, postRelation){
