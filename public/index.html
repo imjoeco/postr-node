@@ -559,9 +559,17 @@
 
               <div class="comment-citation">
                 <a class="username"
+                   ng-hide="postCtrl.currentUser.name == comment.username"
                    ng-click="postCtrl.showUser(comment.username)"
-                >{{ comment.username }}</a>
-
+                >
+                  {{ comment.username }}
+                </a>
+                <a class="edit-comment"
+                   ng-show="postCtrl.currentUser.name == comment.username"
+                   ng-click="postCtrl.editComment(comment)"
+                >
+                  Edit
+                </a>
                 <span class="pull-right">
                   {{ postCtrl.timeAgo(comment.created_at) }}
                 </span>

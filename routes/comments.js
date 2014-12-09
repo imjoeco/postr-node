@@ -24,6 +24,24 @@ router.get('/:post_id', function(req, res) {
   });
 });
 
+/* UPDATE comment */
+router.put('/:comment_id', auth, function(req, res) {
+  console.log(req.route);
+  Comment.findOne({_id:req.params.comment_id}, function(err,comment){
+    if(comment && comment.user_id == req.user._id){
+      comment.content = req.body.content;
+      comment.save(function(err, comment){
+        if(comment) Comment.find({post_id:comment.post_id},function(err,comments){
+          if(comments) res.json(comments);
+        });
+        else res.status(500).json();
+      });
+    }
+    else if(comment) res.status(401).json();
+    else res.status(404).json();
+  });
+});
+
 /* UPDATE post vote */
 router.get('/:comment_id/vote', auth, function(req, res) {
   Comment.findOne({_id: req.params.comment_id},function(err,comment){

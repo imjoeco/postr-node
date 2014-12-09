@@ -411,21 +411,42 @@ app.controller("appController",['$http','$scope', function($http, $scope){
   this.saveComment = function(){
     postCtrl.comment.post_id = postCtrl.viewPost._id;
 
-    $http.post('/comments', postCtrl.comment)
-      .success(function(data){
-        if(typeof postCtrl.viewPost.comments != "undefined"){
-          postCtrl.viewPost.comments.unshift(data);
-        }
-        else{
-          postCtrl.viewPost.comments = [data];
-        }
-        postCtrl.viewPost.postRelation.comment_count = data.content.length;
-        postCtrl.addingComment = false;
-        postCtrl.comment = {};
-      })
-      .error(function(data, status){
-        if(status == 401) postCtrl.signOut();
-      });
+    if(typeof postCtrl.comment._id == "undefined"){
+      $http.post('/comments', postCtrl.comment)
+        .success(function(data){
+          if(typeof postCtrl.viewPost.comments != "undefined"){
+            postCtrl.viewPost.comments.unshift(data);
+          }
+          else{
+            postCtrl.viewPost.comments = [data];
+          }
+          postCtrl.viewPost.postRelation.comment_count = data.content.length;
+          postCtrl.addingComment = false;
+          postCtrl.comment = {};
+        })
+        .error(function(data, status){
+          if(status == 401) postCtrl.signOut();
+        });
+    }
+    else{
+      $http.put('/comments/'+postCtrl.comment._id, postCtrl.comment)
+        .success(function(comments){
+          console.log(comments);
+          postCtrl.viewPost.comments = comments;
+          postCtrl.viewPost.postRelation.comment_count = comments.length;
+          postCtrl.addingComment = false;
+          postCtrl.comment = {};
+        })
+        .error(function(data, status){
+          if(status == 401) postCtrl.signOut();
+        });
+    }
+  };
+
+  this.editComment = function(comment){
+    postCtrl.comment = comment;
+    postCtrl.addingComment = true;
+    postCtrl.comment.commentView = 'post';
   };
                                                            
   this.showComment = function(comment){
