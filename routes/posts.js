@@ -78,10 +78,7 @@ router.put('/:post_id', auth, function(req, res) {
 router.get('/:post_id/vote', auth, function(req, res) {
   Post.findOne({_id: req.params.post_id},function(err,post){
     if(post){
-      var params = req.params;
-      params.user = req.user;
-
-      post.karmaBump(params, function(statusCode, responseBody){
+      post.karmaBump(req.user._id, function(statusCode, responseBody){
         res.status(statusCode).json(responseBody);
       });
     }

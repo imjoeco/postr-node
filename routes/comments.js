@@ -28,7 +28,7 @@ router.get('/:post_id', function(req, res) {
 router.get('/:comment_id/vote', auth, function(req, res) {
   Comment.findOne({_id: req.params.comment_id},function(err,comment){
     if(comment){
-      comment.karmaBump(req.user,function(statusCode, responseBody){
+      comment.karmaBump(req.user._id,function(statusCode, responseBody){
         res.status(statusCode).json();
       });
     }

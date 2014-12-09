@@ -95,11 +95,11 @@ postSchema.methods.favorite = function(user_id, callback){
   });
 };
 
-postSchema.methods.karmaBump = function(params, callback){
+postSchema.methods.karmaBump = function(userId, callback){
   var post = this;
 
   PostRelation.findOne({
-    username: params.user.username,
+    user_id: userId,
     post_id: post._id
   }, function(err, postRelation){
     if(postRelation){
@@ -108,7 +108,7 @@ postSchema.methods.karmaBump = function(params, callback){
       post.save(function(err, post){
         if(post){ 
           // users can't bump their own user karma
-          if(post.user_id != params._id){
+          if(post.user_id != userId){
             // bump user karma
             User.findOne({_id:post.user_id},function(err, user){
               postRelation.voted ? user.karma-- : user.karma++;

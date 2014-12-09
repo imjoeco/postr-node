@@ -34,7 +34,6 @@ router.post('/signin', function(req, res){
       res.cookie('username',user.username);
       res.cookie('remember_token', user.remember_token);
       res.status(200).json();
-      console.log(user.username + " logged in.");
     }
   });
 });

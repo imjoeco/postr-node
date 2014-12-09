@@ -42,21 +42,18 @@ commentSchema.statics.create = function(params, callback){
           });
 
           // auto-bump comment karma for creator
-          comment.karmaBump({
-            username: comment.username,
-            _id: comment.user_id
-          }, callback);
+          comment.karmaBump(comment.user_id, callback);
         }
       });
     }
   });
 };
 
-commentSchema.methods.karmaBump = function(params, callback){
+commentSchema.methods.karmaBump = function(userId, callback){
   var comment = this;
 
   PostRelation.findOne({
-    username: params.username,
+    user_id: userId,
     post_id: comment.post_id
   }, function(err, postRelation){
     if(postRelation){
@@ -66,10 +63,10 @@ commentSchema.methods.karmaBump = function(params, callback){
       comment.save(function(err, comment){
         if(comment){ 
           // users can't bump their own user karma
-          if(comment.user_id != params._id){
+          if(comment.user_id != userId){
             // bump user karma
             User.findOne({_id:comment.user_id},function(err, user){
-              postRelation.voted ? user.karma-- : user.karma++;
+              ~commentIndex ? user.karma-- : user.karma++;
               user.save();
             });
           }
