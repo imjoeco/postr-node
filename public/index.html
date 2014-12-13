@@ -15,14 +15,45 @@
           type="text/css" 
           href="/stylesheets/application.css"
     />
+    <link rel="stylesheet" 
+          type="text/css" 
+          href="/stylesheets/sweet-alert.css"
+    />
     <link rel="icon" 
           type="image/x-icon" 
           href="favicon.ico" 
     />
     <script src="javascripts/vendor/angular.min.js"></script>
+    <script src="javascripts/vendor/angular-sanitize.min.js"></script>
     <!-- script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.18/angular.min.js"></script -->
   </head>
   <body ng-controller="appController as postCtrl">
+  <style>
+    .loading-screen{
+      position:fixed;
+      height:100%;
+      width:100%;
+      background:#bfcce0;
+      z-index:3000;
+    }
+
+    .loading-inner{
+      margin:auto;
+      display:block; position:absolute;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background:#fff;
+      height:40%; min-height:120px; max-height:240px;
+      width:400px; max-width:90%;
+      border-radius:18px;
+      padding:3% 12px;
+    }
+  </style>
+    <div ng-hide="true" class="text-center loading-screen">
+      <div class="loading-inner">
+        <h1>Loading...</h1>
+        <p>If you see this message for more than a few moments, please make sure that you have javascript enabled or try reloading the page.</p>
+      </div>
+    </div>
     <div class="clearout" 
          ng-show="postCtrl.clearout"
          ng-click="postCtrl.hideMenu()"
@@ -155,7 +186,7 @@
           </ul>
 
           <div class="form-item user-name">
-            <label for="user_name">Name</label>
+            <label for="user_name">Username</label>
             <div class="errors" 
                  ng-show="postCtrl.user.showNameError"
             >
@@ -165,6 +196,9 @@
               <div ng-show="userForm.user_name.$dirty && userForm.user_name.$error.pattern">
                 Name may only contain letters, numbers, and underscore ("_") characters.
               </div>
+              <div ng-show="userForm.user_name.$dirty && userForm.user_name.$error.bannedName">
+                Username already in use.
+              </div>
             </div>
             <input ng-model="postCtrl.user.name" 
                    name="user_name" 
@@ -172,6 +206,7 @@
                    size="30" type="text"
                    ng-pattern="/^[A-Za-z0-9]+(?:[_][A-Za-z0-9]+)*$/"
                    ng-minlength="3" ng-maxlength="20"
+                   ng-change="postCtrl.nameCheck()"
                    required
             />
             <div class="valid-link" 
@@ -180,6 +215,34 @@
             <div class="valid-link" 
                  ng-show="userForm.user_name.$dirty && !userForm.user_name.$valid" 
                  ng-click="postCtrl.user.showNameError = !postCtrl.user.showNameError"
+            >❌</div>
+          </div>
+
+          <div class="form-item user-email">
+            <label for="user_email">Email</label>
+            <div class="errors" 
+                 ng-show="postCtrl.user.showEmailError"
+            >
+              <div ng-show="userForm.user_email.$dirty && userForm.user_email.$error.pattern">
+                Please enter a valid email address.
+              </div>
+              <div ng-show="userForm.user_email.$dirty && userForm.user_email.$error.bannedEmail">
+                Email address already in use.
+              </div>
+            </div>
+            <input ng-model="postCtrl.user.email" 
+                   name="user_email" 
+                   size="30" type="text"
+                   ng-pattern="/^\S+@\S+\.\S{2,}$/"
+                   ng-change="postCtrl.emailCheck()"
+                   required
+            />
+            <div class="valid-link" 
+                 ng-show="userForm.user_email.$dirty && userForm.user_email.$valid"
+            >✔</div>
+            <div class="valid-link" 
+                 ng-show="userForm.user_email.$dirty && !userForm.user_email.$valid" 
+                 ng-click="postCtrl.user.showEmailError = !postCtrl.user.showEmailError"
             >❌</div>
           </div>
 
@@ -258,31 +321,48 @@
         >
           <h1 class="text-center">Sign In</h1>
           <input name="utf8" type="hidden" value="✓">
-          <ul class="form-errors" 
-              ng-show="postCtrl.session.errors"
-          >
-            <li>Errors</li>
-            <li class="form-error"
-                ng-repeat="error in postCtrl.session.errors"
+
+          <div class="form-item session-name">
+            <label for="session_name">Username/Email</label>
+            <div class="errors" 
+                 ng-show="postCtrl.user.showSessionNameError"
             >
-              {{ error }}
-            </li>
-          </ul>
+              <div ng-show="sessionForm.session_name.$dirty && sessionForm.session_name.$error.unknownName">
+                No record of this email/username in our system.
+              </div>
+            </div>
+            <input ng-model="postCtrl.session.name" 
+                   name="session_name" 
+                   ng-change="postCtrl.nameCheck('session')"
+                   autofocus="autofocus" 
+                   size="30" type="text"
+                   required
+            />
+            <div class="valid-link" 
+                 ng-show="sessionForm.session_name.$dirty && sessionForm.session_name.$error.unknownName" 
+                 ng-click="postCtrl.user.showSessionNameError = !postCtrl.user.showSessionNameError"
+            >❌</div>
+          </div>
 
-          <label for="session_name">Name</label>
-          <input ng-model="postCtrl.session.name" 
-                 name="session_name" 
-                 autofocus="autofocus" 
-                 size="30" type="text"
-                 required
-          />
-
-          <label for="session_password">Password</label>
-          <input ng-model="postCtrl.session.password" 
-                 name="session_password" 
-                 size="30" type="password"
-                 required
-          />
+          <div class="form-item session-password">
+            <label for="session_password">Password</label>
+            <div class="errors" 
+                 ng-show="sessionForm.session_password.$dirty && sessionForm.session_password.$error.wrongPassword"
+            >
+              <div>
+                Incorrect password.
+              </div>
+            </div>
+            <input ng-model="postCtrl.session.password" 
+                   name="session_password" 
+                   ng-change="postCtrl.passwordCheck('session')"
+                   size="30" type="password"
+                   required
+            />
+            <div class="valid-link" 
+                 ng-show="sessionForm.session_password.$dirty && sessionForm.session_password.$error.wrongPassword"
+            >❌</div>
+          </div>
 
           <input name="commit" 
                  type="submit" 
@@ -290,6 +370,14 @@
                  class="button large "
           >
         </form>
+      </div>
+      <div class="text-center"  ng-show="postCtrl.currentTab == 'confirm'">
+        <h1>Almost there...</h1>
+        <p>We've sent an email confirmation to {{postCtrl.user.email}}.</p>
+        <a class="button expand large" 
+           ng-click="postCtrl.resendEmail()"
+           href
+        >Resend Confirmation</a>
       </div>
 
       <div id="posts">
@@ -411,7 +499,7 @@
           </div>
 
           <div class="post-content" 
-               ng-bind="postCtrl.viewPost.content"
+               ng-bind-html="postCtrl.viewPost.content | linky:'_blank'"
                ng-class="{commenting:postCtrl.addingComment}"
                ng-show="!postCtrl.addingComment || postCtrl.addingComment && postCtrl.comment.commentView == 'post'"
           ></div>
@@ -605,13 +693,10 @@
           >
         </form>
       </comments>
-      <div ng-hide="true" class="text-center">
-        <h1>Loading...</h1>
-        <p>If you see this message for more than a few moments, please make sure that you have javascript enabled or try reloading the page.</p>
-      </div>
     </div>
     <div id="scripts">
       <script src="/javascripts/vendor/date.extensions.js"></script>
+      <script src="/javascripts/vendor/sweet-alert.min.js"></script>
       <script src="/javascripts/app.js"></script>
     </div>
   </body>

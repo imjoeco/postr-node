@@ -12,12 +12,10 @@ router.post('/', function(req, res) {
   var params = req.body;
   User.create(params, function(err, user){
     if(err){
-      res.status(err.code).json([err.message]);
+      res.status(err.code).json({errors:[err.message]});
     }
     else{
-      res.cookie('username',user.username);
-      res.cookie('remember_token', user.remember_token);
-      res.status(201).json(user);
+      res.status(201).json(user.email_safe());
     }
   });
 });
@@ -28,7 +26,8 @@ router.post('/signin', function(req, res){
 
   User.authenticate(params, function(err, user){
     if(err){
-      res.status(err).json();
+      if(user) res.status(err).json(user);
+      else res.status(err).json();
     }
     else{
       res.cookie('username',user.username);
@@ -49,6 +48,38 @@ router.get('/:username', function(req, res) {
         created_at: user.created_at,
         about_me: user.about_me,
         karma: user.karma
+      });
+    }
+  });
+});
+
+/* UPDATE confirm user */
+router.get('/:username/confirm/:confirmation_code', function(req, res) {
+  User.findOne({username:req.params.username},function(err,user){
+    if(err) res.status(err.status || 500).json();
+    if(user){
+      if(user.confirmation_code == req.params.confirmation_code){
+        user.confirmation_code = undefined;
+        user.email_attempts = 0;
+        user.save();
+
+        res.cookie('username',user.username);
+        res.cookie('remember_token', user.remember_token);
+        res.redirect('/');
+      }
+      else{
+        console.log("nope");
+      }
+    }
+  });
+});
+
+/* UPDATE confirm user */
+router.get('/:username/resend_confirmation', function(req, res) {
+  User.findOne({username:req.params.username},function(err,user){
+    if(user){
+      user.sendConfirmation(function(statusCode){
+        res.status(statusCode).json();
       });
     }
   });

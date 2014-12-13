@@ -31,7 +31,7 @@ router.put('/:comment_id', auth, function(req, res) {
     if(comment && comment.user_id == req.user._id){
       comment.content = req.body.content;
       comment.save(function(err, comment){
-        if(comment) Comment.find({post_id:comment.post_id},function(err,comments){
+        if(comment) Comment.find({post_id:comment.post_id}).sort("-created_at").exec(function(err,comments){
           if(comments) res.json(comments);
         });
         else res.status(500).json();

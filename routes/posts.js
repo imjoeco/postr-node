@@ -41,6 +41,7 @@ router.get('/top', function(req, res) {
 router.get('/favorites', auth, function(req, res) {
   FavoriteList.findOne({username:req.user.username}, function(err, list){
     if(list) res.json(list);
+    else res.json({items:[]});
   });
 });
 

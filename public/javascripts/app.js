@@ -1,4 +1,4 @@
-var app = angular.module("postrApp",[]);
+var app = angular.module("postrApp",['ngSanitize']);
 
 app.controller("appController",['$http','$scope', function($http, $scope){
   var postCtrl = this;
@@ -13,10 +13,16 @@ app.controller("appController",['$http','$scope', function($http, $scope){
   this.comment = {};
   this.user = {
     showNameError:false,
+    showEmailError:false,
+    showSessionNameError:false,
+    showSessionPasswordError:false,
     showPassError:false,
-    showPassConError:false
+    showPassConError:false,
   };
 
+  this.bannedNames = [];
+  this.bannedEmails = [];
+  this.unknownNames = [];
 
   this.addingComment = false;
   this.clearout = false;
@@ -28,6 +34,10 @@ app.controller("appController",['$http','$scope', function($http, $scope){
 
   this.hideMenu = function(){
     postCtrl.clearout = false;
+  };
+
+  this.closeAll = function(){
+    window.close();
   };
 
 //  _____             _               _      _       _   
@@ -518,19 +528,99 @@ app.controller("appController",['$http','$scope', function($http, $scope){
   this.signUp = function(){
     $http.post('/users', postCtrl.user)
     .success(function(data){
-      console.dir(data);
+      postCtrl.showConfirmationForm(data);
+    })
+    .error(function(data, status){
+      if(status == 409){
+        postCtrl.bannedEmails.push(postCtrl.user.email);
+        postCtrl.emailCheck();
+        postCtrl.user.showEmailError = true;
+        swal("Have we met?", "That email address has already been registered.", "error");
+      }
+      else if(status == 403){
+        postCtrl.bannedNames.push(postCtrl.user.name);
+        postCtrl.nameCheck();
+        postCtrl.user.showNameError = true;
+        swal("Have we met?", "That username has already been registered.", "error");
+      }
+      else postCtrl.user.errors = data.errors;
+    });
+  };
+
+  this.showConfirmationForm = function(user){
+    postCtrl.user = user;
+    postCtrl.currentTab = 'confirm';
+  };
+
+  this.resendEmail = function(){
+    $http.get('/users/'+postCtrl.user.username+'/resend_confirmation')
+    .success(function(){
+      swal("Confirmation Sent", "Please check your email inbox.", "success");
+    })
+    .error(function(){
+    });
+  };
+
+  this.confirmUser = function(){
+    $http.post('/users', postCtrl.user)
+    .success(function(data){
       postCtrl.currentUser = {name:data.username};
       postCtrl.signedIn = true;
-      postCtrl.currentTab = 'index';
+      postCtrl.currentTab = 'confirm';
     })
     .error(function(data){
       postCtrl.user.errors = data.errors;
     });
+
   };
 
-  this.passwordCheck = function(){
-    valid = (postCtrl.user.password == postCtrl.user.password_confirmation)
-    $scope.userForm.user_password_confirmation.$setValidity("passwordsMismatch",valid);
+  this.passwordCheck = function(type){
+    if(type == "session"){
+      if(postCtrl.user.showSessionPasswordError){
+        $scope.sessionForm.session_password.$setValidity("wrongPassword",false);
+        sessionForm.session_password.focus();
+        postCtrl.user.showSessionPasswordError = false;
+      }
+      else{
+        $scope.sessionForm.session_password.$setValidity("wrongPassword",true);
+      }
+     
+    }
+    else{
+      valid = (postCtrl.user.password == postCtrl.user.password_confirmation)
+      $scope.userForm.user_password_confirmation.$setValidity("passwordsMismatch",valid);
+    }
+  };
+
+  this.emailCheck = function(){
+    $scope.userForm.user_email.$setValidity("bannedEmail",true);
+    for(var i = 0, emails = postCtrl.bannedEmails; i < emails.length; i++){
+      if(emails[i] == postCtrl.user.email){
+        $scope.userForm.user_email.$setValidity("bannedEmail",false);
+        break;
+      }
+    }
+  };
+
+  this.nameCheck = function(type){
+    if(type == "session"){
+      $scope.sessionForm.session_name.$setValidity("unknownName",true);
+      for(var i = 0, names = postCtrl.unknownNames; i < names.length; i++){
+        if(names[i] == postCtrl.session.name){
+          $scope.sessionForm.session_name.$setValidity("unknownName",false);
+          break;
+        }
+      }
+    }
+    else{
+      $scope.userForm.user_name.$setValidity("bannedName",true);
+      for(var i = 0, names = postCtrl.bannedNames; i < names.length; i++){
+        if(names[i] == postCtrl.user.name){
+          $scope.userForm.user_name.$setValidity("bannedName",false);
+          break;
+        }
+      }
+    }
   };
 
   this.editUser = function(user){
@@ -649,26 +739,35 @@ app.controller("appController",['$http','$scope', function($http, $scope){
     //postCtrl.session.name = sessionForm.session_name.value;
     //postCtrl.session.password = sessionForm.session_password.value;
 
-    //sessionForm.session_name.focus();
     if(!$scope.$$phase){
       $scope.$apply();
     }
+
+    sessionForm.session_name.focus();
   };
 
   this.signIn = function(){
     $http.post('users/signin', postCtrl.session)
-      .success(function(data){
-        postCtrl.currentUser.name = document.cookie.replace(/(.*)username=/,"").replace(/;(.*)/,"");
-        postCtrl.currentUser.id = postCtrl.currentUser.name;
+    .success(function(data){
+      postCtrl.currentUser.name = document.cookie.replace(/(.*)username=/,"").replace(/;(.*)/,"");
+      postCtrl.currentUser.id = postCtrl.currentUser.name;
 
-        postCtrl.session = {};
-        postCtrl.signedIn = true;
-        postCtrl.showIndex();
-      })
-      .error(function(data,status){
-        if(status == 404) postCtrl.session.errors = ["Name not found"];
-        if(status == 401) postCtrl.session.errors = ["Incorrect password"];
-      });
+      postCtrl.session = {};
+      postCtrl.signedIn = true;
+      postCtrl.showIndex();
+    })
+    .error(function(data,status){
+      if(status == 403) postCtrl.showConfirmationForm(data);
+      if(status == 401){
+        postCtrl.user.showSessionPasswordError = true;
+        postCtrl.passwordCheck("session");
+      }
+      if(status == 404){ 
+        postCtrl.unknownNames.push(postCtrl.session.name);
+        postCtrl.nameCheck("session");
+        postCtrl.user.showSessionNameError = true;
+      }
+    });
   }
 
   this.signOut = function(){
@@ -687,6 +786,8 @@ app.controller("appController",['$http','$scope', function($http, $scope){
     document.cookie = 'username=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 
     postCtrl.currentUser = {};
+    postCtrl.session.name = "";
+    postCtrl.session.password = "";
     postCtrl.clearout = false;
     postCtrl.signedIn = false;
     postCtrl.showSessionForm();
@@ -744,10 +845,13 @@ app.controller("appController",['$http','$scope', function($http, $scope){
           postCtrl.editUser({username:urlId, preserveState:true});
         }
         else postCtrl.showUser({userId:urlId,preserveState:true});
-      else if(urlController == "signup")
-        postCtrl.showUserForm({preserveState:true});
-      else if(urlController == "signin")
-        postCtrl.showSessionForm({preserveState:true});
+      else if(!postCtrl.signedIn){
+        if(urlController == "signup")
+          postCtrl.showUserForm({preserveState:true});
+        else if(urlController == "signin")
+          postCtrl.showSessionForm({preserveState:true});
+        else postCtrl.showIndex();
+      }
       else postCtrl.showIndex();
     }
     else{
@@ -814,22 +918,22 @@ app.controller("appController",['$http','$scope', function($http, $scope){
 //  return {restrict:'E', templateUrl: 'post-form.html'};
 //});
 
-//    ___                         _      
-//   / __|___ _ __  _ __  ___ _ _| |_ ___
-//  | (__/ _ \ '  \| '  \/ -_) ' \  _(_-<
-//   \___\___/_|_|_|_|_|_\___|_||_\__/__/
-
-app.directive("comments", function(){
-  return {restrict:'E'};
-});
-
-app.directive("commentIndex", function(){
-  return {restrict:'E', templateUrl:'comment-index.html'};
-});
-
-app.directive("commentForm", function(){
-  return {restrict:'E', templateUrl:'comment-form.html'};
-});
+////    ___                         _      
+////   / __|___ _ __  _ __  ___ _ _| |_ ___
+////  | (__/ _ \ '  \| '  \/ -_) ' \  _(_-<
+////   \___\___/_|_|_|_|_|_\___|_||_\__/__/
+//
+//app.directive("comments", function(){
+//  return {restrict:'E'};
+//});
+//
+//app.directive("commentIndex", function(){
+//  return {restrict:'E', templateUrl:'comment-index.html'};
+//});
+//
+//app.directive("commentForm", function(){
+//  return {restrict:'E', templateUrl:'comment-form.html'};
+//});
 
 //   _   _ _   _  _  _ _   _           
 //  | | | | | (_)| |(_) | (_)          
